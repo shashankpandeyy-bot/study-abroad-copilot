@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import IntakeWizard from "@/components/IntakeWizard";
+import Landing from "@/components/Landing";
 import Questions from "@/components/Questions";
 import { errorText, post } from "@/lib/api";
 import { useApp } from "@/lib/state";
@@ -59,16 +60,21 @@ export default function IntakePage() {
   }
 
   if (!hydrated) {
-    return <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 text-sm text-zinc-500">Loading...</main>;
+    return <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 text-sm text-tarmac">Loading...</main>;
   }
 
   const inFollowUps = state.questions.length > 0;
+  const started = Boolean(
+    state.shortlist || inFollowUps || demo || query?.has("step") || state.profile.countries || state.profile.field || state.profile.fullName
+  );
+  // A first-time visitor sees the landing page. Everyone else goes straight back to their questions.
+  if (!started) return <Landing />;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Find where you fit</h1>
-        <p className="mt-2 text-zinc-600">
+        <h1 className="text-3xl font-bold tracking-tight text-ink">Find where you fit</h1>
+        <p className="mt-2 text-tarmac">
           Answer a few questions about your course, exams, money and risk. We shortlist universities, let you
           try what-if changes, and draft applications you can compare.
         </p>
@@ -78,9 +84,9 @@ export default function IntakePage() {
         <div
           role="status"
           aria-live="polite"
-          className="mb-4 flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900"
+          className="mb-4 flex items-center gap-3 rounded-lg border border-main/30 bg-main-tint p-3 text-sm text-main-ink"
         >
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-jet border-t-transparent" />
           {busy}
         </div>
       )}
@@ -92,7 +98,7 @@ export default function IntakePage() {
       )}
 
       {state.shortlist && !inFollowUps && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-sm text-zinc-700">
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-white p-3 text-sm text-ink">
           You already have a shortlist. Changing your answers below will make a new one.
           <Link href="/profile" className={btnSecondary + " !px-3 !py-1.5"}>
             Back to my profile
@@ -113,7 +119,7 @@ export default function IntakePage() {
             />
             <button
               type="button"
-              className="mt-4 text-sm text-zinc-500 underline"
+              className="mt-4 text-sm text-tarmac underline"
               onClick={() => set({ questions: [] })}
               disabled={!!busy}
             >
@@ -134,7 +140,7 @@ export default function IntakePage() {
         )}
       </div>
 
-      <p className="mt-4 text-xs text-zinc-500">
+      <p className="mt-4 text-xs text-tarmac">
         Privacy: what you type is sent to Google&apos;s Gemini API to generate results, and your journey is saved
         only in this browser. Use &quot;Start over&quot; to clear it.
       </p>

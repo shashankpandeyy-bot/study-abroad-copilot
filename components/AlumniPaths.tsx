@@ -26,22 +26,22 @@ export default function AlumniPaths({
 
       <div className="grid gap-3 md:grid-cols-3">
         {data.paths.map((p, i) => (
-          <article key={i} className="rounded-xl border border-zinc-200 bg-white p-4">
-            <h3 className="font-semibold text-zinc-900">{p.title}</h3>
-            <p className="mt-2 text-sm text-zinc-800">
+          <article key={i} className="rounded-xl border border-line bg-white p-4">
+            <h3 className="font-semibold text-ink">{p.title}</h3>
+            <p className="mt-2 text-sm text-ink">
               <span className="font-medium">Typical employers: </span>
               {p.typicalEmployers}
             </p>
             {p.skills.length > 0 && (
               <ul className="mt-2 flex flex-wrap gap-1.5">
                 {p.skills.map((s) => (
-                  <li key={s} className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-800">
+                  <li key={s} className="rounded-full bg-main-tint px-2 py-0.5 text-xs text-main-ink">
                     {s}
                   </li>
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-sm text-zinc-800">
+            <p className="mt-2 text-sm text-ink">
               <span className="font-medium">Typical path: </span>
               {p.timeline}
             </p>
@@ -57,14 +57,14 @@ export default function AlumniPaths({
       </div>
 
       <section>
-        <h3 className="text-sm font-semibold text-zinc-900">Questions to ask real alumni</h3>
+        <h3 className="text-sm font-semibold text-ink">Questions to ask real alumni</h3>
         <ul className="mt-2 space-y-2">
           {data.questionsForAlumni.map((q) => {
             const key = `${programId}::${q}`;
             const isSaved = saved.includes(key);
             return (
-              <li key={key} className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-sm">
-                <span className="flex-1 text-zinc-800">{q}</span>
+              <li key={key} className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-white p-3 text-sm">
+                <span className="flex-1 text-ink">{q}</span>
                 <button type="button" className={isSaved ? btnPrimary + " !px-3 !py-1.5" : btnSmall} onClick={() => onToggleSave(key)}>
                   {isSaved ? "Saved" : "Save"}
                 </button>

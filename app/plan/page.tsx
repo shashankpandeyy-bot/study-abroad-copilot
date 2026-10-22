@@ -122,16 +122,16 @@ export default function PlanPage() {
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Your plan</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Your plan</h1>
+        <p className="mt-1 text-sm text-tarmac">
           A checklist and timeline for your application, your drafts to download, and a link you can share.
         </p>
       </header>
 
       <section className={cardClass}>
-        <h2 className="text-lg font-semibold text-zinc-900">Timeline and checklist</h2>
+        <h2 className="text-lg font-semibold text-ink">Timeline and checklist</h2>
         {intake ? (
-          <p className="mt-1 text-sm text-zinc-600">
+          <p className="mt-1 text-sm text-tarmac">
             Aiming for <strong>{state.profile.intake}</strong> (starts around {intake.start}). Dates marked typical are
             usual windows, not official deadlines. Replace each one with the real date from the program page, then
             it becomes yours to track.
@@ -146,9 +146,9 @@ export default function PlanPage() {
           </p>
         )}
         {selected.length === 0 && (
-          <p className="mt-2 text-sm text-zinc-600">
+          <p className="mt-2 text-sm text-tarmac">
             Select programs on the{" "}
-            <Link href="/programs" className="text-indigo-700 underline">
+            <Link href="/programs" className="text-jet-deep underline">
               Programs page
             </Link>{" "}
             to add one set of tasks per program.
@@ -156,9 +156,9 @@ export default function PlanPage() {
         )}
 
         {next.length > 0 && (
-          <div className="mt-4 rounded-lg bg-indigo-50 p-3">
-            <p className="text-sm font-semibold text-indigo-900">Coming up</p>
-            <ul className="mt-1 space-y-0.5 text-sm text-indigo-900">
+          <div className="mt-4 rounded-lg bg-main-tint p-3">
+            <p className="text-sm font-semibold text-main-ink">Coming up</p>
+            <ul className="mt-1 space-y-0.5 text-sm text-main-ink">
               {next.map((t) => (
                 <li key={t.id}>
                   {effectiveDate(t)}: {t.label}
@@ -176,7 +176,7 @@ export default function PlanPage() {
           <button type="button" className={btnSecondary} onClick={downloadCalendar} disabled={confirmed.length === 0}>
             Download calendar file (.ics)
           </button>
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-tarmac">
             {confirmed.length === 0
               ? "Confirm at least one date to download reminders."
               : `${confirmed.length} confirmed date${confirmed.length === 1 ? "" : "s"} will be added. Import the file into Google, Apple or Outlook Calendar.`}
@@ -185,11 +185,11 @@ export default function PlanPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="text-lg font-semibold text-zinc-900">Download your drafts</h2>
+        <h2 className="text-lg font-semibold text-ink">Download your drafts</h2>
         {selected.length === 0 || !selected.some((p) => draftFor(p)) ? (
-          <p className="mt-1 text-sm text-zinc-600">
+          <p className="mt-1 text-sm text-tarmac">
             You have no drafts yet. Select programs and open the{" "}
-            <Link href="/applications" className="text-indigo-700 underline">
+            <Link href="/applications" className="text-jet-deep underline">
               Applications page
             </Link>{" "}
             to write them.
@@ -199,15 +199,15 @@ export default function PlanPage() {
             {selected
               .filter((p) => draftFor(p))
               .map((p) => (
-                <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 p-3">
+                <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-line p-3">
                   <div className="min-w-[12rem] flex-1">
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-ink">
                       {p.university}
                       {state.chosenId === p.id && (
-                        <span className="ml-2 rounded bg-indigo-600 px-1.5 py-0.5 text-xs text-white">Your pick</span>
+                        <span className="ml-2 rounded bg-jet px-1.5 py-0.5 text-xs text-white">Your pick</span>
                       )}
                     </p>
-                    <p className="text-xs text-zinc-600">{p.program}</p>
+                    <p className="text-xs text-tarmac">{p.program}</p>
                   </div>
                   <button type="button" className={btnSecondary + " !px-3 !py-1.5"} onClick={() => setPrintId(p.id)}>
                     PDF (print)
@@ -229,14 +229,14 @@ export default function PlanPage() {
             {exportError}
           </p>
         )}
-        <p className="mt-3 text-xs text-zinc-500">
+        <p className="mt-3 text-xs text-tarmac">
           Yellow blanks stay highlighted in the file. In the print window, choose &quot;Save as PDF&quot;.
         </p>
       </section>
 
       <section className={cardClass}>
-        <h2 className="text-lg font-semibold text-zinc-900">Share your plan</h2>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h2 className="text-lg font-semibold text-ink">Share your plan</h2>
+        <p className="mt-1 text-sm text-tarmac">
           Make a link to your profile, shortlist and chosen draft for a parent or counsellor.
         </p>
         <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -262,7 +262,7 @@ export default function PlanPage() {
               <button type="button" className={btnSecondary + " !px-3 !py-1.5"} onClick={copyLink}>
                 {copied ? "Copied" : "Copy link"}
               </button>
-              <span className="text-xs text-zinc-500">{shareUrl.length.toLocaleString("en-US")} characters</span>
+              <span className="text-xs text-tarmac">{shareUrl.length.toLocaleString("en-US")} characters</span>
             </div>
             {shareNote && <p className="text-xs text-amber-800">{shareNote}</p>}
           </div>

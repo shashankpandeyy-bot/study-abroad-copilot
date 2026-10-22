@@ -7,8 +7,8 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
   return (
     <main className="mx-auto w-full max-w-xl flex-1 px-4 py-16">
       <div className={cardClass}>
-        <h1 className="text-xl font-semibold text-zinc-900">Something went wrong</h1>
-        <p className="mt-2 text-sm text-zinc-600">
+        <h1 className="text-xl font-semibold text-ink">Something went wrong</h1>
+        <p className="mt-2 text-sm text-tarmac">
           This page hit a problem. Your answers are saved in this browser, so nothing you entered is lost.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">

@@ -38,14 +38,14 @@ export default function ProgramCard({
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-5 shadow-sm transition ${
-        selected ? "border-indigo-600 ring-2 ring-indigo-200" : "border-zinc-200"
+      className={`rounded-xl border bg-white p-5 transition ${
+        selected ? "border-jet ring-2 ring-main/30" : "border-line"
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-zinc-900">{program.university}</h3>
-          <p className="text-sm text-zinc-700">
+          <h3 className="text-base font-semibold text-ink">{program.university}</h3>
+          <p className="text-sm text-ink">
             {program.program} · {program.country}
           </p>
         </div>
@@ -60,8 +60,8 @@ export default function ProgramCard({
             disabled={blocked && !selected}
             className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
               selected
-                ? "border-indigo-600 bg-indigo-600 text-white"
-                : "border-zinc-300 text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+                ? "border-jet bg-jet text-white"
+                : "border-line text-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50"
             }`}
           >
             {selected ? "Selected" : "Select"}
@@ -69,17 +69,17 @@ export default function ProgramCard({
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-zinc-800">
+      <p className="mt-3 text-sm text-ink">
         <span className="font-medium">Why it fits: </span>
         {program.whyItFits}
       </p>
-      <p className="mt-1 text-sm text-zinc-800">
+      <p className="mt-1 text-sm text-ink">
         <span className="font-medium">Main risk: </span>
         {program.mainRisk}
       </p>
 
-      <details className="mt-4 rounded-lg border border-zinc-200 p-3">
-        <summary className="cursor-pointer text-sm font-medium text-indigo-700">
+      <details className="mt-4 rounded-lg border border-line p-3">
+        <summary className="cursor-pointer text-sm font-medium text-jet-deep">
           Strengths, gaps and cost{insight ? "" : " (analyse this program)"}
         </summary>
         <div className="mt-3 space-y-4">
@@ -104,8 +104,8 @@ export default function ProgramCard({
         </div>
       </details>
 
-      <details className="mt-3 rounded-lg border border-zinc-200 p-3">
-        <summary className="cursor-pointer text-sm font-medium text-indigo-700">Sources and verify links</summary>
+      <details className="mt-3 rounded-lg border border-line p-3">
+        <summary className="cursor-pointer text-sm font-medium text-jet-deep">Sources and verify links</summary>
         <div className="mt-3">
           <SourcesPanel
             program={program}

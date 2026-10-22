@@ -97,10 +97,10 @@ export default function ProfileSummary({ profile, readOnly = false }: { profile:
     <div className="grid gap-x-8 gap-y-6 md:grid-cols-2">
       {GROUPS.map((g) => (
         <section key={g.title}>
-          <div className="mb-2 flex items-center justify-between border-b border-zinc-200 pb-1">
-            <h3 className="text-sm font-semibold text-zinc-900">{g.title}</h3>
+          <div className="mb-2 flex items-center justify-between border-b border-line pb-1">
+            <h3 className="text-sm font-semibold text-ink">{g.title}</h3>
             {!readOnly && (
-              <Link href={`/?step=${g.step}`} className="text-xs text-indigo-700 underline hover:text-indigo-900">
+              <Link href={`/?step=${g.step}`} className="text-xs text-jet-deep underline hover:text-main-ink">
                 Edit
               </Link>
             )}
@@ -111,8 +111,8 @@ export default function ProfileSummary({ profile, readOnly = false }: { profile:
               const missing = v.includes("Not given");
               return (
                 <div key={r.label} className="flex gap-3 text-sm">
-                  <dt className="w-36 shrink-0 text-zinc-500">{r.label}</dt>
-                  <dd className={missing ? "text-zinc-400" : "text-zinc-900"}>{v}</dd>
+                  <dt className="w-36 shrink-0 text-tarmac">{r.label}</dt>
+                  <dd className={missing ? "text-tarmac" : "text-ink"}>{v}</dd>
                 </div>
               );
             })}
@@ -121,10 +121,10 @@ export default function ProfileSummary({ profile, readOnly = false }: { profile:
       ))}
       {(profile.experience || profile.activities || profile.about) && (
         <section className="md:col-span-2">
-          <div className="mb-2 flex items-center justify-between border-b border-zinc-200 pb-1">
-            <h3 className="text-sm font-semibold text-zinc-900">In your own words</h3>
+          <div className="mb-2 flex items-center justify-between border-b border-line pb-1">
+            <h3 className="text-sm font-semibold text-ink">In your own words</h3>
             {!readOnly && (
-              <Link href="/?step=5" className="text-xs text-indigo-700 underline hover:text-indigo-900">
+              <Link href="/?step=5" className="text-xs text-jet-deep underline hover:text-main-ink">
                 Edit
               </Link>
             )}
@@ -132,20 +132,20 @@ export default function ProfileSummary({ profile, readOnly = false }: { profile:
           <dl className="space-y-1.5 text-sm">
             {profile.experience && (
               <div className="flex gap-3">
-                <dt className="w-36 shrink-0 text-zinc-500">Experience</dt>
-                <dd className="text-zinc-900">{short(profile.experience)}</dd>
+                <dt className="w-36 shrink-0 text-tarmac">Experience</dt>
+                <dd className="text-ink">{short(profile.experience)}</dd>
               </div>
             )}
             {profile.activities && (
               <div className="flex gap-3">
-                <dt className="w-36 shrink-0 text-zinc-500">Projects</dt>
-                <dd className="text-zinc-900">{short(profile.activities)}</dd>
+                <dt className="w-36 shrink-0 text-tarmac">Projects</dt>
+                <dd className="text-ink">{short(profile.activities)}</dd>
               </div>
             )}
             {profile.about && (
               <div className="flex gap-3">
-                <dt className="w-36 shrink-0 text-zinc-500">About you</dt>
-                <dd className="text-zinc-900">{short(profile.about)}</dd>
+                <dt className="w-36 shrink-0 text-tarmac">About you</dt>
+                <dd className="text-ink">{short(profile.about)}</dd>
               </div>
             )}
           </dl>

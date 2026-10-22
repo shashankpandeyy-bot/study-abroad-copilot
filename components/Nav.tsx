@@ -26,20 +26,21 @@ export default function Nav() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur print:hidden">
-      <div className="mx-auto flex w-full max-w-5xl items-center gap-4 px-4 py-2.5">
-        <Link href="/" className="shrink-0 text-base font-bold tracking-tight text-zinc-900">
-          Study Abroad Co-Pilot
+    <header className="sticky top-0 z-20 border-b border-line bg-concourse/80 backdrop-blur-xl print:hidden">
+      <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-2">
+        <Link href="/" className="flex min-h-11 shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-ink">
+          <span aria-hidden className="inline-block h-3 w-3 rounded-full bg-main" />
+          Gatepass
         </Link>
         {state.shortlist && (
-          <nav aria-label="Main" className="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 text-sm">
+          <nav aria-label="Main" className="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 text-sm [scrollbar-width:none]">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 aria-current={pathname === l.href ? "page" : undefined}
-                className={`shrink-0 rounded-md px-3 py-1.5 ${
-                  pathname === l.href ? "bg-indigo-50 font-medium text-indigo-700" : "text-zinc-600 hover:bg-zinc-100"
+                className={`flex min-h-11 shrink-0 items-center rounded-full px-3.5 ${
+                  pathname === l.href ? "bg-ink font-medium text-white" : "text-tarmac hover:bg-ink/5 hover:text-ink"
                 }`}
               >
                 {l.label}
@@ -51,7 +52,7 @@ export default function Nav() {
           <button
             type="button"
             onClick={startOver}
-            className="ml-auto shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:bg-zinc-100"
+            className="ml-auto flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-sm text-tarmac hover:bg-ink/5 hover:text-ink"
           >
             Start over
           </button>

@@ -25,14 +25,14 @@ export default function ChecklistTracker({
   return (
     <div className="space-y-5">
       <div>
-        <div className="flex justify-between text-sm text-zinc-700">
+        <div className="flex justify-between text-sm text-ink">
           <span>
             {p.done} of {p.total} done
           </span>
           <span className="tabular-nums">{p.percent}%</span>
         </div>
         <div
-          className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-zinc-200"
+          className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-ink/10"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -45,7 +45,7 @@ export default function ChecklistTracker({
 
       {groupIds.map((gid) => (
         <section key={gid}>
-          <h3 className="mb-1 text-sm font-semibold text-zinc-900">{programName(gid)}</h3>
+          <h3 className="mb-1 text-sm font-semibold text-ink">{programName(gid)}</h3>
           <ul>
             {tasks
               .filter((t) => t.programId === gid)
@@ -53,7 +53,7 @@ export default function ChecklistTracker({
                 const date = effectiveDate(t);
                 const overdue = !t.done && date !== "" && date < today;
                 return (
-                  <li key={t.id} className="flex flex-wrap items-start gap-3 border-t border-zinc-200 py-2.5">
+                  <li key={t.id} className="flex flex-wrap items-start gap-3 border-t border-line py-2.5">
                     <input
                       type="checkbox"
                       className="mt-1 h-4 w-4"
@@ -62,8 +62,8 @@ export default function ChecklistTracker({
                       aria-label={`Done: ${t.label}`}
                     />
                     <div className="min-w-[12rem] flex-1">
-                      <p className={`text-sm ${t.done ? "text-zinc-400 line-through" : "text-zinc-900"}`}>{t.label}</p>
-                      <p className="text-xs text-zinc-500">
+                      <p className={`text-sm ${t.done ? "text-tarmac line-through" : "text-ink"}`}>{t.label}</p>
+                      <p className="text-xs text-tarmac">
                         {KIND[t.kind]}
                         {t.confirmedDate
                           ? " · date confirmed by you"
@@ -79,7 +79,7 @@ export default function ChecklistTracker({
                         value={t.confirmedDate}
                         onChange={(e) => onUpdate(t.id, { confirmedDate: e.target.value })}
                         aria-label={`Confirmed date for: ${t.label}`}
-                        className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm"
+                        className="rounded-lg border border-line px-2 py-1.5 text-sm"
                       />
                       {t.suggestedDate && !t.confirmedDate && (
                         <button type="button" className={btnSmall} onClick={() => onUpdate(t.id, { confirmedDate: t.suggestedDate })}>

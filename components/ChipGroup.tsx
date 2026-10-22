@@ -53,7 +53,7 @@ export default function ChipGroup({
 
   return (
     <fieldset>
-      <legend className="mb-1.5 text-sm font-medium text-zinc-800">{label}</legend>
+      <legend className="mb-1.5 text-sm font-medium text-ink">{label}</legend>
       <div className="flex flex-wrap gap-2">
         {[...options, ...extras].map((o) => {
           const on = value.includes(o);
@@ -65,12 +65,12 @@ export default function ChipGroup({
               aria-pressed={on}
               disabled={blocked}
               onClick={() => toggle(o)}
-              className={`rounded-full border px-3.5 py-2 text-sm transition ${
+              className={`inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-[15px] transition ${
                 on
-                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  ? "border-main bg-main text-white"
                   : blocked
-                    ? "cursor-not-allowed border-zinc-200 bg-zinc-50 text-zinc-400"
-                    : "border-zinc-300 bg-white text-zinc-700 hover:border-indigo-400"
+                    ? "cursor-not-allowed border-line bg-ink/5 text-tarmac"
+                    : "border-line bg-white text-ink hover:border-main"
               }`}
             >
               {o}
@@ -97,14 +97,14 @@ export default function ChipGroup({
             type="button"
             onClick={addCustom}
             disabled={!draft.trim() || full}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
+            className="rounded-lg border border-line px-3 py-2 text-sm text-ink hover:bg-ink/5 disabled:opacity-50"
           >
             Add
           </button>
         </div>
       )}
       {(hint || (max != null && !single)) && (
-        <p className="mt-1.5 text-xs text-zinc-500">
+        <p className="mt-1.5 text-xs text-tarmac">
           {hint}
           {max != null && !single && ` ${value.length} of ${max} chosen.`}
         </p>

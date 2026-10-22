@@ -23,9 +23,9 @@ export default function SourcesPanel({
     <div className="space-y-3">
       {facts && (
         <div>
-          <h4 className="text-sm font-semibold text-zinc-900">Checked against sources</h4>
-          <p className="text-xs text-zinc-500">Checked on {facts.checkedOn}. Every line below points to a source.</p>
-          <ul className="mt-2 space-y-1.5 text-sm text-zinc-800">
+          <h4 className="text-sm font-semibold text-ink">Checked against sources</h4>
+          <p className="text-xs text-tarmac">Checked on {facts.checkedOn}. Every line below points to a source.</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-ink">
             {facts.facts.map((f, i) => (
               <li key={i}>
                 <span className="font-medium">{f.label}:</span> {f.value}{" "}
@@ -38,7 +38,7 @@ export default function SourcesPanel({
                       target="_blank"
                       rel="noopener noreferrer"
                       title={src.title}
-                      className="text-xs text-indigo-700 underline"
+                      className="text-xs text-jet-deep underline"
                     >
                       [{id}]
                     </a>
@@ -48,7 +48,7 @@ export default function SourcesPanel({
             ))}
           </ul>
           {facts.notFound.length > 0 && (
-            <p className="mt-2 text-xs text-zinc-500">Not found in sources: {facts.notFound.join(", ")}.</p>
+            <p className="mt-2 text-xs text-tarmac">Not found in sources: {facts.notFound.join(", ")}.</p>
           )}
         </div>
       )}
@@ -67,8 +67,8 @@ export default function SourcesPanel({
       )}
 
       <div>
-        <h4 className="text-sm font-semibold text-zinc-900">Verify it yourself</h4>
-        <p className="text-xs text-zinc-500">
+        <h4 className="text-sm font-semibold text-ink">Verify it yourself</h4>
+        <p className="text-xs text-tarmac">
           {facts
             ? "Open the university's own pages to confirm anything that matters."
             : "Fees, deadlines and requirements above are AI estimates. These searches open the real pages."}
@@ -80,7 +80,7 @@ export default function SourcesPanel({
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block rounded-full border border-zinc-300 px-3 py-1.5 text-xs text-zinc-700 hover:border-indigo-400 hover:text-indigo-700"
+                className="inline-block rounded-full border border-line px-3 py-1.5 text-xs text-ink hover:border-jet hover:text-jet-deep"
               >
                 {l.label}
               </a>

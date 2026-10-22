@@ -10,7 +10,7 @@ const FIT = {
   fits: { label: "Fits", style: "bg-emerald-100 text-emerald-800" },
   stretch: { label: "A stretch", style: "bg-amber-100 text-amber-800" },
   over: { label: "Over budget", style: "bg-rose-100 text-rose-800" },
-  unknown: { label: "No budget set", style: "bg-zinc-200 text-zinc-700" },
+  unknown: { label: "No budget set", style: "bg-ink/10 text-ink" },
 } as const;
 
 export default function ProgramCompare({
@@ -28,7 +28,7 @@ export default function ProgramCompare({
 }) {
   const missing = programs.filter((p) => !insights.insights[p.id]);
   const anyBusy = programs.some((p) => insights.busy[p.id]);
-  const dash = <span className="text-zinc-400">...</span>;
+  const dash = <span className="text-tarmac">...</span>;
 
   const rows: { label: string; cell: (p: Program) => React.ReactNode }[] = [
     {
@@ -91,7 +91,7 @@ export default function ProgramCompare({
       label: "Funding found",
       cell: (p) => {
         const sch = scholarships[p.id];
-        if (!sch) return <span className="text-zinc-400">Not looked up</span>;
+        if (!sch) return <span className="text-tarmac">Not looked up</span>;
         const likely = sch.scholarships.filter((s) => s.match === "likely").length;
         return `${sch.scholarships.length} options, ${likely} likely eligible`;
       },
@@ -103,10 +103,10 @@ export default function ProgramCompare({
         return a ? (
           <span>
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${bandStyle[a.chance.band]}`}>{a.chance.band}</span>{" "}
-            <span className="text-zinc-600">{a.chance.range}</span>
+            <span className="text-tarmac">{a.chance.range}</span>
           </span>
         ) : (
-          <span className="text-zinc-400">No draft yet</span>
+          <span className="text-tarmac">No draft yet</span>
         );
       },
     },
@@ -124,25 +124,25 @@ export default function ProgramCompare({
           {anyBusy ? "Analysing..." : `Analyse ${missing.length} program${missing.length === 1 ? "" : "s"} to fill the table`}
         </button>
       )}
-      <div className="overflow-x-auto rounded-xl border border-zinc-200">
+      <div className="overflow-x-auto rounded-xl border border-line">
         <table className="w-full min-w-[560px] border-collapse text-left text-sm">
           <thead>
-            <tr className="bg-zinc-50">
-              <th className="p-3 font-medium text-zinc-500"> </th>
+            <tr className="bg-ink/5">
+              <th className="p-3 font-medium text-tarmac"> </th>
               {programs.map((p) => (
-                <th key={p.id} className="p-3 align-bottom font-semibold text-zinc-900">
+                <th key={p.id} className="p-3 align-bottom font-semibold text-ink">
                   {p.university}
-                  <span className="block text-xs font-normal text-zinc-600">{p.program}</span>
+                  <span className="block text-xs font-normal text-tarmac">{p.program}</span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.label} className="border-t border-zinc-200">
-                <td className="p-3 text-zinc-500">{r.label}</td>
+              <tr key={r.label} className="border-t border-line">
+                <td className="p-3 text-tarmac">{r.label}</td>
                 {programs.map((p) => (
-                  <td key={p.id} className="p-3 text-zinc-900">
+                  <td key={p.id} className="p-3 text-ink">
                     {r.cell(p)}
                   </td>
                 ))}
@@ -151,7 +151,7 @@ export default function ProgramCompare({
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-tarmac">
         Costs are AI estimates as ranges, not quotes. Verify fees on each university&apos;s official page.
       </p>
     </div>

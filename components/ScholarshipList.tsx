@@ -8,7 +8,7 @@ import { btnPrimary, btnSmall } from "@/lib/ui";
 const matchStyle = {
   likely: "bg-emerald-100 text-emerald-800",
   maybe: "bg-amber-100 text-amber-800",
-  unlikely: "bg-zinc-200 text-zinc-700",
+  unlikely: "bg-ink/10 text-ink",
 } as const;
 
 export default function ScholarshipList({
@@ -31,24 +31,24 @@ export default function ScholarshipList({
         const isSaved = saved.includes(key);
         const link = scholarshipLink(s);
         return (
-          <li key={key} className="rounded-xl border border-zinc-200 bg-white p-4">
+          <li key={key} className="rounded-xl border border-line bg-white p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-zinc-900">{s.name}</h3>
-                {s.provider && <p className="text-sm text-zinc-600">{s.provider}</p>}
+                <h3 className="font-semibold text-ink">{s.name}</h3>
+                {s.provider && <p className="text-sm text-tarmac">{s.provider}</p>}
               </div>
               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${matchStyle[s.match]}`}>
                 Eligibility: {s.match}
               </span>
             </div>
-            <dl className="mt-3 space-y-1 text-sm text-zinc-800">
+            <dl className="mt-3 space-y-1 text-sm text-ink">
               <div>
                 <dt className="inline font-medium">Rough value: </dt>
                 <dd className="inline">
                   {s.amountLowUsd != null && s.amountHighUsd != null ? (
                     <>
                       about {usdRange(s.amountLowUsd, s.amountHighUsd)} per year{" "}
-                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">AI estimate</span>
+                      <span className="rounded-full bg-ink/5 px-2 py-0.5 text-xs text-tarmac">AI estimate</span>
                     </>
                   ) : (
                     s.typicalValue || "Amount not stated"

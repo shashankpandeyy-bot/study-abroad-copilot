@@ -1,21 +1,205 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Gatepass design tokens. Six named colours, two typefaces, three radii. */
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
+  --concourse: #eef1f5;
+  --ink: #111b2e;
+  --jet: #2347e0;
+  --flap: #ffb000;
+  --stamp: #c2253b;
+  --tarmac: #566074;
+  --surface: #ffffff;
+  --line: rgb(17 27 46 / 0.14);
+
+  /* The chosen country re-themes these three. Neutral until a country is picked. */
+  --c-main: #2347e0;
+  --c-ink: #0f1e5a;
+  --c-tint: #e4e9fb;
+
+  /* shadcn/ui reads these, so its parts follow the same theme */
+  --background: var(--concourse);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--jet);
+  --primary-foreground: #ffffff;
+  --secondary: #e3e8ef;
+  --secondary-foreground: var(--ink);
+  --muted: #dfe5ee;
+  --muted-foreground: var(--tarmac);
+  --accent: var(--c-tint);
+  --accent-foreground: var(--c-ink);
+  --destructive: var(--stamp);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--jet);
+  --radius: 0.625rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-concourse: var(--concourse);
+  --color-ink: var(--ink);
+  --color-jet: var(--jet);
+  --color-jet-deep: #1a37b4;
+  --color-jet-tint: #e4e9fb;
+  --color-flap: var(--flap);
+  --color-stamp: var(--stamp);
+  --color-stamp-tint: #fbe9ec;
+  --color-tarmac: var(--tarmac);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-main: var(--c-main);
+  --color-main-ink: var(--c-ink);
+  --color-main-tint: var(--c-tint);
+
+  --font-sans: var(--font-instrument), system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+  --font-heading: var(--font-instrument), system-ui, sans-serif;
+
+  /* Radii: 4 for passes, 10 for controls, full for chips */
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+
+html {
+  background: var(--concourse);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  background: var(--concourse);
+  color: var(--ink);
+  font-family: var(--font-instrument), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* Focus is always visible, for keyboard users */
+:focus-visible {
+  outline: 3px solid var(--jet);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Tabular digits so ticking numbers do not jitter */
+.num {
+  font-family: var(--font-martian), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+@layer components {
+/* Boarding pass: a 4px ticket with notches and a perforation line */
+.pass {
+  position: relative;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  --notch: 9px;
+  mask:
+    radial-gradient(circle var(--notch) at var(--stub, 74%) 0, #0000 98%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle var(--notch) at var(--stub, 74%) 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+}
+.pass-stub {
+  border-left: 2px dashed var(--line);
+}
+
+/* The one lifted thing on a screen: a hard offset shadow, no blur */
+.lift {
+  filter: drop-shadow(4px 4px 0 var(--c-main));
+  transform: translate(-2px, -2px);
+}
+
+/* Departures board: the only dark surface */
+.board {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 4px;
+}
+.flap {
+  display: inline-block;
+  min-width: 1ch;
+  padding: 0 0.12em;
+  margin-right: 1px;
+  background: #1d2a44;
+  color: var(--flap);
+  border-radius: 2px;
+  position: relative;
+}
+.flap::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgb(0 0 0 / 0.55);
+}
+}
+
+/* Currency symbols drifting behind the hero. Slow, low opacity. */
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+  }
+  to {
+    transform: translate3d(var(--dx, 24px), var(--dy, -40px), 0) rotate(calc(var(--r, 0deg) + 6deg));
+  }
+}
+.drifter {
+  animation: drift var(--t, 26s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Print a single draft as a clean page ("Save as PDF" in the print dialog). */
@@ -38,5 +222,86 @@ body {
     background: #fde047 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }

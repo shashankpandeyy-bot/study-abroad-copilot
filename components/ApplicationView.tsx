@@ -23,7 +23,7 @@ function MarkedText({
             <mark
               key={i}
               title="You never used this wording. Check that it is true, or reword it."
-              className="rounded bg-pink-200 px-1 text-zinc-900"
+              className="rounded bg-pink-200 px-1 text-ink"
             >
               {part}
             </mark>
@@ -31,7 +31,7 @@ function MarkedText({
         }
         if (part.startsWith("[PLACEHOLDER:")) {
           return (
-            <mark key={i} className="rounded bg-yellow-200 px-1 text-zinc-900">
+            <mark key={i} className="rounded bg-yellow-200 px-1 text-ink">
               {part}
             </mark>
           );
@@ -41,7 +41,7 @@ function MarkedText({
             <mark
               key={i}
               title="You never gave us this number. Check it."
-              className="rounded bg-orange-300 px-1 text-zinc-900"
+              className="rounded bg-orange-300 px-1 text-ink"
             >
               {part}
             </mark>
@@ -76,23 +76,23 @@ export default function ApplicationView({
     <div className="space-y-6">
       {showHeader && (
         <div>
-          <h2 className="text-lg font-semibold text-zinc-900">Your application: {program.program}</h2>
-          <p className="text-sm text-zinc-600">
+          <h2 className="text-lg font-semibold text-ink">Your application: {program.program}</h2>
+          <p className="text-sm text-tarmac">
             {program.university} · {program.country}
           </p>
         </div>
       )}
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-4">
+      <section className="rounded-xl border border-line bg-white p-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-sm font-semibold text-zinc-900">Chance of getting shortlisted</h3>
+          <h3 className="text-sm font-semibold text-ink">Chance of getting shortlisted</h3>
           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${bandStyle[chance.band]}`}>
             {chance.band}
           </span>
-          {chance.range && <span className="text-sm text-zinc-700">about {chance.range}</span>}
-          <span className="text-xs text-zinc-500">(AI estimate, not a guarantee)</span>
+          {chance.range && <span className="text-sm text-ink">about {chance.range}</span>}
+          <span className="text-xs text-tarmac">(AI estimate, not a guarantee)</span>
         </div>
-        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-zinc-800">
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-ink">
           {chance.reasons.map((r, i) => (
             <li key={i}>{r}</li>
           ))}
@@ -100,14 +100,14 @@ export default function ApplicationView({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-zinc-900">Statement of Purpose (draft)</h3>
-        <p className="mt-1 text-xs text-zinc-600">
+        <h3 className="text-sm font-semibold text-ink">Statement of Purpose (draft)</h3>
+        <p className="mt-1 text-xs text-tarmac">
           <mark className="rounded bg-yellow-200 px-1">Yellow</mark> = a detail we did not have, so add your own
           real information. <mark className="rounded bg-orange-300 px-1">Orange</mark> = a number you never gave
           us, so check it. <mark className="rounded bg-pink-200 px-1">Pink</mark> = dramatic wording you never
           used, so check it is true or reword it. You are responsible for every sentence you submit.
         </p>
-        <div className="mt-2 whitespace-pre-wrap rounded-xl border border-zinc-200 bg-white p-4 text-sm leading-relaxed text-zinc-900">
+        <div className="mt-2 whitespace-pre-wrap rounded-xl border border-line bg-white p-4 text-sm leading-relaxed text-ink">
           <MarkedText text={application.sop} flagged={flagged} phrases={flaggedPhrases} />
         </div>
         {flaggedPhrases.size > 0 && (
@@ -124,9 +124,9 @@ export default function ApplicationView({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-zinc-900">Facts used from your profile</h3>
+        <h3 className="text-sm font-semibold text-ink">Facts used from your profile</h3>
         {factsUsed.length > 0 ? (
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-zinc-800">
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-ink">
             {factsUsed.map((f, i) => (
               <li key={i}>{f}</li>
             ))}

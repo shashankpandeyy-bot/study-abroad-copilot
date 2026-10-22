@@ -57,8 +57,8 @@ export default function ApplicationsPage() {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
         <div className={cardClass}>
-          <h1 className="text-xl font-semibold text-zinc-900">No programs picked yet</h1>
-          <p className="mt-2 text-sm text-zinc-600">
+          <h1 className="text-xl font-semibold text-ink">No programs picked yet</h1>
+          <p className="mt-2 text-sm text-tarmac">
             Choose 3 or 4 programs on your profile page and we will write a draft for each.
           </p>
           <Link href="/profile" className={btnPrimary + " mt-4 inline-block"}>
@@ -72,8 +72,8 @@ export default function ApplicationsPage() {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Compare your application drafts</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Compare your application drafts</h1>
+        <p className="mt-1 text-sm text-tarmac">
           One personalised draft per program. Read them, compare, and choose the one you want to take forward.
         </p>
       </header>
@@ -93,14 +93,14 @@ export default function ApplicationsPage() {
           return (
             <section
               key={p.id}
-              className={`rounded-2xl border bg-white p-5 shadow-sm ${
-                chosen ? "border-indigo-600 ring-2 ring-indigo-200" : "border-zinc-200"
+              className={`rounded-xl border bg-white p-5 ${
+                chosen ? "border-jet ring-2 ring-main/30" : "border-line"
               }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h2 className="font-semibold text-zinc-900">{p.university}</h2>
-                  <p className="text-sm text-zinc-700">
+                  <h2 className="font-semibold text-ink">{p.university}</h2>
+                  <p className="text-sm text-ink">
                     {p.program} · {p.country}
                   </p>
                 </div>
@@ -110,8 +110,8 @@ export default function ApplicationsPage() {
               </div>
 
               {(!draft || draft.status === "loading") && (
-                <p role="status" className="mt-4 flex items-center gap-3 text-sm text-indigo-900">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                <p role="status" className="mt-4 flex items-center gap-3 text-sm text-main-ink">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-jet border-t-transparent" />
                   Writing your draft...
                 </p>
               )}
@@ -133,8 +133,8 @@ export default function ApplicationsPage() {
 
               {draft?.status === "done" && draft.application && (
                 <div className="mt-4 space-y-3">
-                  <details open={programs.length === 1} className="rounded-lg border border-zinc-200 p-3">
-                    <summary className="cursor-pointer text-sm font-medium text-indigo-700">
+                  <details open={programs.length === 1} className="rounded-lg border border-line p-3">
+                    <summary className="cursor-pointer text-sm font-medium text-jet-deep">
                       Read the full draft
                     </summary>
                     <div className="mt-4">
@@ -176,7 +176,7 @@ export default function ApplicationsPage() {
         })}
       </div>
 
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-tarmac">
         Drafts are AI-written from what you told us. Replace every yellow blank with your own real details, check
         every orange number, and verify program facts on the official site. You are responsible for what you
         submit.

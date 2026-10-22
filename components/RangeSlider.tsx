@@ -35,12 +35,12 @@ export default function RangeSlider({
   return (
     <fieldset className="space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <legend className="text-sm font-medium text-zinc-800">{label}</legend>
-        <span className="text-sm font-semibold text-indigo-700">
+        <legend className="text-sm font-medium text-ink">{label}</legend>
+        <span className="text-sm font-semibold text-jet-deep">
           {isSet ? `${format(lo)} to ${format(hi)}` : "Not set"}
         </span>
       </div>
-      <label className="block text-xs text-zinc-600">
+      <label className="block text-xs text-tarmac">
         {lowLabel}: {format(lo)}
         <input
           type="range"
@@ -56,7 +56,7 @@ export default function RangeSlider({
           aria-label={`${label}, ${lowLabel.toLowerCase()}`}
         />
       </label>
-      <label className="block text-xs text-zinc-600">
+      <label className="block text-xs text-tarmac">
         {highLabel}: {format(hi)}
         <input
           type="range"
@@ -72,10 +72,10 @@ export default function RangeSlider({
           aria-label={`${label}, ${highLabel.toLowerCase()}`}
         />
       </label>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-tarmac">
         <span>{hint}</span>
         {onClear && isSet && (
-          <button type="button" onClick={onClear} className="underline hover:text-zinc-800">
+          <button type="button" onClick={onClear} className="underline hover:text-ink">
             Clear
           </button>
         )}

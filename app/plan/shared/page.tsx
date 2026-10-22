@@ -24,8 +24,8 @@ export default function SharedPlanPage() {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
         <div className={cardClass}>
-          <h1 className="text-xl font-semibold text-zinc-900">This link could not be opened</h1>
-          <p className="mt-2 text-sm text-zinc-600">
+          <h1 className="text-xl font-semibold text-ink">This link could not be opened</h1>
+          <p className="mt-2 text-sm text-tarmac">
             The link may be damaged or cut short. Ask the sender for a fresh one, or start your own plan.
           </p>
           <Link href="/" className={btnPrimary + " mt-4 inline-block"}>
@@ -42,13 +42,13 @@ export default function SharedPlanPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-8">
-      <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
+      <div className="rounded-lg border border-main/30 bg-main-tint p-4 text-sm text-main-ink">
         <strong>Shared plan (read only).</strong> This was made with Study Abroad Co-Pilot. The details are an AI-assisted
         draft from the student&apos;s own answers, so check every fact on the universities&apos; official pages.
       </div>
 
       <section className={cardClass}>
-        <h1 className="mb-4 text-xl font-semibold text-zinc-900">Profile</h1>
+        <h1 className="mb-4 text-xl font-semibold text-ink">Profile</h1>
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
             <StrengthMeter profile={plan.profile} readOnly />
@@ -60,19 +60,19 @@ export default function SharedPlanPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="mb-3 text-lg font-semibold text-zinc-900">Programs</h2>
+        <h2 className="mb-3 text-lg font-semibold text-ink">Programs</h2>
         <ul className="space-y-3">
           {plan.programs.map((p) => (
-            <li key={p.id} className="rounded-xl border border-zinc-200 p-4">
+            <li key={p.id} className="rounded-xl border border-line p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-semibold text-zinc-900">
+                  <p className="font-semibold text-ink">
                     {p.university}
                     {chosen?.id === p.id && (
-                      <span className="ml-2 rounded bg-indigo-600 px-1.5 py-0.5 text-xs text-white">Chosen</span>
+                      <span className="ml-2 rounded bg-jet px-1.5 py-0.5 text-xs text-white">Chosen</span>
                     )}
                   </p>
-                  <p className="text-sm text-zinc-700">
+                  <p className="text-sm text-ink">
                     {p.program} · {p.country}
                   </p>
                 </div>
@@ -80,8 +80,8 @@ export default function SharedPlanPage() {
                   {p.category}
                 </span>
               </div>
-              {p.whyItFits && <p className="mt-2 text-sm text-zinc-800">{p.whyItFits}</p>}
-              {p.mainRisk && <p className="mt-1 text-sm text-zinc-600">Main risk: {p.mainRisk}</p>}
+              {p.whyItFits && <p className="mt-2 text-sm text-ink">{p.whyItFits}</p>}
+              {p.mainRisk && <p className="mt-1 text-sm text-tarmac">Main risk: {p.mainRisk}</p>}
             </li>
           ))}
         </ul>
@@ -89,7 +89,7 @@ export default function SharedPlanPage() {
 
       {plan.draft && draftProgram && (
         <section className={cardClass}>
-          <h2 className="mb-3 text-lg font-semibold text-zinc-900">Chosen draft</h2>
+          <h2 className="mb-3 text-lg font-semibold text-ink">Chosen draft</h2>
           <ApplicationView
             program={draftProgram}
             application={plan.draft.application}

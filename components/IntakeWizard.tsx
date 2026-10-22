@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { validateScore } from "@/lib/exams";
+import { scoreRange, validateScore } from "@/lib/exams";
 import { formatGrades, validateGrade } from "@/lib/grades";
 import {
   BUDGET_MAX,
@@ -42,9 +42,9 @@ const STEPS = ["About you", "What you want", "Exams", "Money", "Where", "Backgro
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-zinc-800">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-ink">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-tarmac">{hint}</span>}
     </label>
   );
 }
@@ -97,7 +97,7 @@ function Choice<T extends string>({
 }) {
   return (
     <fieldset>
-      <legend className="mb-1 text-sm font-medium text-zinc-800">{label}</legend>
+      <legend className="mb-1 text-sm font-medium text-ink">{label}</legend>
       <div className="grid gap-2 sm:grid-cols-3">
         {options.map((o) => (
           <button
@@ -107,12 +107,12 @@ function Choice<T extends string>({
             onClick={() => onChange(o.value)}
             className={`rounded-xl border p-3 text-left text-sm transition ${
               value === o.value
-                ? "border-indigo-600 bg-indigo-50 ring-2 ring-indigo-200"
-                : "border-zinc-200 bg-white hover:border-zinc-400"
+                ? "border-jet bg-main-tint ring-2 ring-main/30"
+                : "border-line bg-white hover:border-ink/40"
             }`}
           >
-            <span className="block font-medium text-zinc-900">{o.title}</span>
-            {o.hint && <span className="mt-0.5 block text-xs text-zinc-600">{o.hint}</span>}
+            <span className="block font-medium text-ink">{o.title}</span>
+            {o.hint && <span className="mt-0.5 block text-xs text-tarmac">{o.hint}</span>}
           </button>
         ))}
       </div>
@@ -145,7 +145,7 @@ function ExamBlock({
 }) {
   const error = status === "taken" || status === "planned" ? validateScore(test, score) : null;
   return (
-    <div className="space-y-3 rounded-xl border border-zinc-200 p-4">
+    <div className="space-y-3 rounded-xl border border-line p-4">
       <EnumChips
         label={title}
         hint="Leave empty if you are not sure yet."
@@ -174,6 +174,17 @@ function ExamBlock({
               />
               {error && <ErrorText>{error}</ErrorText>}
             </Field>
+            {status === "taken" && test && score.trim() && !error && scoreRange(test) && (
+              <div className="flex items-center sm:justify-center" aria-live="polite">
+                <div className="-rotate-3 rounded-md border-2 border-double border-stamp px-4 py-2 text-center text-stamp">
+                  <p className="num text-[13px]">{test}</p>
+                  <p className="num text-2xl leading-tight">
+                    {score.trim()} / {scoreRange(test)?.max}
+                  </p>
+                  <p className="text-xs font-medium">Score logged</p>
+                </div>
+              </div>
+            )}
             {status === "planned" && (
               <Field label="Planned for" hint="Month you plan to take it.">
                 <input
@@ -276,10 +287,10 @@ export default function IntakeWizard({
   return (
     <form onSubmit={submit} className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-indigo-700">
-          Step {step + 1} of {STEPS.length}
+        <p className="text-sm font-medium text-main">
+          Check-in, part {step + 1} of {STEPS.length}
         </p>
-        <h2 className="text-lg font-semibold text-zinc-900">{STEPS[step]}</h2>
+        <h2 className="text-2xl font-semibold text-ink">{STEPS[step]}</h2>
         <ol className="mt-3 flex gap-1.5" aria-label="Steps">
           {STEPS.map((name, i) => (
             <li key={name} className="flex-1">
@@ -288,7 +299,7 @@ export default function IntakeWizard({
                 onClick={() => go(i)}
                 aria-current={i === step ? "step" : undefined}
                 aria-label={`Go to step ${i + 1}: ${name}`}
-                className={`h-2 w-full rounded-full ${i <= step ? "bg-indigo-600" : "bg-zinc-200 hover:bg-zinc-300"}`}
+                className={`h-2.5 w-full rounded-full ${i <= step ? "bg-main" : "bg-ink/10 hover:bg-ink/20"}`}
               />
             </li>
           ))}
@@ -297,7 +308,7 @@ export default function IntakeWizard({
 
       {demo && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-zinc-500">Demo helpers:</span>
+          <span className="text-tarmac">Demo helpers:</span>
           <button type="button" className={btnSecondary + " !px-2.5 !py-1"} onClick={() => onChange(STRONG_SAMPLE)}>
             Sample profile
           </button>
@@ -367,7 +378,7 @@ export default function IntakeWizard({
               </select>
             </Field>
           </div>
-          <div className="space-y-3 rounded-xl border border-zinc-200 p-4">
+          <div className="space-y-3 rounded-xl border border-line p-4">
             <EnumChips
               label="How are your grades measured?"
               hint="Pick the scale on your transcript, then enter your grade."
@@ -565,7 +576,7 @@ export default function IntakeWizard({
               highLabel="Up to"
             />
           )}
-          <div className="space-y-3 rounded-xl border border-zinc-200 p-4">
+          <div className="space-y-3 rounded-xl border border-line p-4">
             <Choice<"yes" | "no">
               label="Will you take a loan?"
               value={profile.loanWanted ? "yes" : "no"}

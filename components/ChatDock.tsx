@@ -91,7 +91,7 @@ export default function ChatDock() {
       <button
         type="button"
         onClick={() => set({ chatOpen: true })}
-        className="fixed bottom-20 right-4 z-30 rounded-full bg-indigo-600 px-5 py-3 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 print:hidden"
+        className="fixed bottom-20 right-4 z-30 rounded-full bg-jet px-5 py-3 text-sm font-medium text-white shadow-lg hover:bg-jet-deep print:hidden"
       >
         Ask the AI
       </button>
@@ -101,13 +101,13 @@ export default function ChatDock() {
   return (
     <section
       aria-label="AI advisor chat"
-      className="fixed inset-0 z-40 flex flex-col bg-white sm:inset-auto sm:bottom-20 sm:right-4 sm:z-30 sm:h-[min(34rem,72vh)] sm:w-[min(26rem,calc(100vw-2rem))] sm:rounded-2xl sm:border sm:border-zinc-200 sm:shadow-2xl"
+      className="fixed inset-0 z-40 flex flex-col bg-white sm:inset-auto sm:bottom-20 sm:right-4 sm:z-30 sm:h-[min(34rem,72vh)] sm:w-[min(26rem,calc(100vw-2rem))] sm:rounded-xl sm:border sm:border-line sm:shadow-2xl"
     >
-      <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-zinc-900">Your advisor</h2>
+      <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+        <h2 className="text-sm font-semibold text-ink">Your advisor</h2>
         <button
           type="button"
-          className="ml-auto text-xs text-zinc-500 hover:text-zinc-800"
+          className="ml-auto text-xs text-tarmac hover:text-ink"
           onClick={() => set({ chat: [] })}
           disabled={state.chat.length === 0}
         >
@@ -121,7 +121,7 @@ export default function ChatDock() {
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
         {state.chat.length === 0 && (
           <div className="space-y-2">
-            <p className="text-zinc-600">
+            <p className="text-tarmac">
               Tell me about yourself or ask anything. When you share new facts, I will suggest profile updates
               and you decide whether to apply them.
             </p>
@@ -138,8 +138,8 @@ export default function ChatDock() {
         {state.chat.map((m, i) => (
           <div key={i} className={m.role === "user" ? "text-right" : ""}>
             <div
-              className={`inline-block max-w-[92%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-left ${
-                m.role === "user" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-900"
+              className={`inline-block max-w-[92%] whitespace-pre-wrap rounded-xl px-3 py-2 text-left ${
+                m.role === "user" ? "bg-jet text-white" : "bg-ink/5 text-ink"
               }`}
             >
               {m.text}
@@ -148,14 +148,14 @@ export default function ChatDock() {
               const st = m.proposalState?.[j] ?? "pending";
               const shown = displayValue({ ...state.profile, [p.field]: p.value }, p.field);
               return (
-                <div key={j} className="mt-2 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-left">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-indigo-800">
+                <div key={j} className="mt-2 rounded-xl border border-main/30 bg-main-tint p-3 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-main-ink">
                     Suggested profile update
                   </p>
-                  <p className="mt-1 text-zinc-900">
+                  <p className="mt-1 text-ink">
                     {p.label}: <strong>{shown}</strong>
                   </p>
-                  {p.reason && <p className="text-xs text-zinc-600">{p.reason}</p>}
+                  {p.reason && <p className="text-xs text-tarmac">{p.reason}</p>}
                   {st === "pending" ? (
                     <div className="mt-2 flex gap-2">
                       <button type="button" className={btnPrimary + " !px-3 !py-1.5"} onClick={() => resolve(i, j, "applied")}>
@@ -166,7 +166,7 @@ export default function ChatDock() {
                       </button>
                     </div>
                   ) : (
-                    <p className="mt-2 text-xs font-medium text-zinc-600">
+                    <p className="mt-2 text-xs font-medium text-tarmac">
                       {st === "applied" ? "Applied to your profile." : "Dismissed."}
                     </p>
                   )}
@@ -177,8 +177,8 @@ export default function ChatDock() {
         ))}
 
         {busy && (
-          <p role="status" className="flex items-center gap-2 text-zinc-500">
-            <span className="h-3 w-3 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          <p role="status" className="flex items-center gap-2 text-tarmac">
+            <span className="h-3 w-3 animate-spin rounded-full border-2 border-jet border-t-transparent" />
             Thinking...
           </p>
         )}
@@ -191,7 +191,7 @@ export default function ChatDock() {
       </div>
 
       <form
-        className="flex gap-2 border-t border-zinc-200 p-3"
+        className="flex gap-2 border-t border-line p-3"
         onSubmit={(e) => {
           e.preventDefault();
           void send();
@@ -209,7 +209,7 @@ export default function ChatDock() {
             }
           }}
           placeholder="Type a message..."
-          className="flex-1 resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          className="flex-1 resize-none rounded-lg border border-line px-3 py-2 text-sm focus:border-jet focus:outline-none focus:ring-2 focus:ring-main/30"
         />
         <button type="submit" className={btnPrimary + " self-end"} disabled={busy || !input.trim()}>
           Send

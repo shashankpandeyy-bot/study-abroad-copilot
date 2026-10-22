@@ -35,8 +35,8 @@ export default function AlumniPage() {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Alumni paths</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Alumni paths</h1>
+        <p className="mt-1 text-sm text-tarmac">
           See where graduates of a program typically end up, and get questions ready for real alumni.
         </p>
       </header>
@@ -49,13 +49,13 @@ export default function AlumniPage() {
       />
 
       <section className={cardClass}>
-        <h2 className="mb-3 text-lg font-semibold text-zinc-900">
+        <h2 className="mb-3 text-lg font-semibold text-ink">
           {active.university} · {active.program}
         </h2>
 
         {d.loading && (
-          <p role="status" className="flex items-center gap-3 text-sm text-indigo-900">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          <p role="status" className="flex items-center gap-3 text-sm text-main-ink">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-jet border-t-transparent" />
             Sketching typical alumni paths...
           </p>
         )}
@@ -89,11 +89,11 @@ export default function AlumniPage() {
 
       {savedItems.length > 0 && (
         <section className={cardClass}>
-          <h2 className="text-lg font-semibold text-zinc-900">Your saved questions ({savedItems.length})</h2>
-          <ul className="mt-2 space-y-1 text-sm text-zinc-800">
+          <h2 className="text-lg font-semibold text-ink">Your saved questions ({savedItems.length})</h2>
+          <ul className="mt-2 space-y-1 text-sm text-ink">
             {savedItems.map((s) => (
               <li key={s.key}>
-                {s.question} <span className="text-zinc-500">· {s.where}</span>
+                {s.question} <span className="text-tarmac">· {s.where}</span>
               </li>
             ))}
           </ul>

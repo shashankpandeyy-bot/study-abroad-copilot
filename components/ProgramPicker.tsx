@@ -16,7 +16,7 @@ export default function ProgramPicker({
 }) {
   return (
     <label className="block max-w-xl text-sm">
-      <span className="mb-1 block font-medium text-zinc-800">Program</span>
+      <span className="mb-1 block font-medium text-ink">Program</span>
       <select className={inputClass} value={activeId} onChange={(e) => onPick(e.target.value)}>
         {programs.map((p) => (
           <option key={p.id} value={p.id}>
@@ -25,7 +25,7 @@ export default function ProgramPicker({
           </option>
         ))}
       </select>
-      <span className="mt-1 block text-xs text-zinc-500">★ marks the programs you selected for applications.</span>
+      <span className="mt-1 block text-xs text-tarmac">★ marks the programs you selected for applications.</span>
     </label>
   );
 }

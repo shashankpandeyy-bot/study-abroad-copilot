@@ -49,8 +49,8 @@ export default function FundingPage() {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Funding and scholarships</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Funding and scholarships</h1>
+        <p className="mt-1 text-sm text-tarmac">
           Funding options the AI recalls for each program, compared with your profile. Set the yearly amount you are
           hoping for and widen or narrow it any time.
         </p>
@@ -80,13 +80,13 @@ export default function FundingPage() {
       <ProgramPicker programs={d.ordered} selectedIds={state.selected} activeId={active.id} onPick={d.pick} />
 
       <section className={cardClass}>
-        <h2 className="mb-3 text-lg font-semibold text-zinc-900">
+        <h2 className="mb-3 text-lg font-semibold text-ink">
           {active.university} · {active.program}
         </h2>
 
         {d.loading && (
-          <p role="status" className="flex items-center gap-3 text-sm text-indigo-900">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          <p role="status" className="flex items-center gap-3 text-sm text-main-ink">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-jet border-t-transparent" />
             Looking up funding options...
           </p>
         )}
@@ -105,7 +105,7 @@ export default function FundingPage() {
         {d.data && groups && (
           <div className="space-y-6">
             {d.data.scholarships.length === 0 && (
-              <p className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
+              <p className="rounded-lg border border-line bg-ink/5 p-4 text-sm text-ink">
                 The AI could not name specific scholarships it is confident about for this program. Check the
                 university&apos;s funding page and your home country&apos;s study-abroad schemes.
               </p>
@@ -113,7 +113,7 @@ export default function FundingPage() {
 
             {groups.inRange.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-zinc-900">
+                <h3 className="mb-2 text-sm font-semibold text-ink">
                   {low != null || high != null ? "Within your range" : "Funding options"} ({groups.inRange.length})
                 </h3>
                 <ScholarshipList
@@ -128,7 +128,7 @@ export default function FundingPage() {
 
             {groups.notStated.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-zinc-900">Amount not stated ({groups.notStated.length})</h3>
+                <h3 className="mb-2 text-sm font-semibold text-ink">Amount not stated ({groups.notStated.length})</h3>
                 <ScholarshipList
                   scholarships={groups.notStated}
                   programId={active.id}
@@ -141,10 +141,10 @@ export default function FundingPage() {
 
             {groups.outOfRange.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-zinc-900">
+                <h3 className="mb-2 text-sm font-semibold text-ink">
                   Outside your range ({groups.outOfRange.length})
                 </h3>
-                <p className="mb-2 text-xs text-zinc-500">Widen the range above if you want these included.</p>
+                <p className="mb-2 text-xs text-tarmac">Widen the range above if you want these included.</p>
                 <ScholarshipList
                   scholarships={groups.outOfRange}
                   programId={active.id}
@@ -171,11 +171,11 @@ export default function FundingPage() {
 
       {savedItems.length > 0 && (
         <section className={cardClass}>
-          <h2 className="text-lg font-semibold text-zinc-900">Your saved scholarships ({savedItems.length})</h2>
-          <ul className="mt-2 space-y-1 text-sm text-zinc-800">
+          <h2 className="text-lg font-semibold text-ink">Your saved scholarships ({savedItems.length})</h2>
+          <ul className="mt-2 space-y-1 text-sm text-ink">
             {savedItems.map((s) => (
               <li key={s.key}>
-                <strong>{s.name}</strong> <span className="text-zinc-500">· {s.where}</span>
+                <strong>{s.name}</strong> <span className="text-tarmac">· {s.where}</span>
               </li>
             ))}
           </ul>

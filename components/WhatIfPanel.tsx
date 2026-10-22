@@ -25,8 +25,8 @@ function Seg<T extends string>({
 }) {
   return (
     <fieldset>
-      <legend className="mb-1 text-sm font-medium text-zinc-800">{label}</legend>
-      <div className="inline-flex overflow-hidden rounded-lg border border-zinc-300">
+      <legend className="mb-1 text-sm font-medium text-ink">{label}</legend>
+      <div className="inline-flex overflow-hidden rounded-lg border border-line">
         {options.map((o) => (
           <button
             key={o.value}
@@ -34,7 +34,7 @@ function Seg<T extends string>({
             aria-pressed={value === o.value}
             onClick={() => onChange(o.value)}
             className={`px-3 py-1.5 text-sm ${
-              value === o.value ? "bg-indigo-600 text-white" : "bg-white text-zinc-700 hover:bg-zinc-100"
+              value === o.value ? "bg-jet text-white" : "bg-white text-ink hover:bg-ink/5"
             }`}
           >
             {o.title}
@@ -60,15 +60,15 @@ function ProgramLine({ p, reason, tone }: { p: Program; reason: string; tone: "a
         >
           {tone === "added" ? "Added" : "Dropped"}
         </span>
-        <span className="font-semibold text-zinc-900">{p.university}</span>
-        <span className="text-zinc-700">
+        <span className="font-semibold text-ink">{p.university}</span>
+        <span className="text-ink">
           {p.program} · {p.country}
         </span>
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${categoryStyle[p.category]}`}>
           {p.category}
         </span>
       </div>
-      <p className="mt-1 text-zinc-800">{reason}</p>
+      <p className="mt-1 text-ink">{reason}</p>
     </li>
   );
 }
@@ -151,8 +151,8 @@ export default function WhatIfPanel() {
 
   return (
     <section className={cardClass}>
-      <h2 className="text-lg font-semibold text-zinc-900">What if you changed something?</h2>
-      <p className="mt-1 text-sm text-zinc-600">
+      <h2 className="text-lg font-semibold text-ink">What if you changed something?</h2>
+      <p className="mt-1 text-sm text-tarmac">
         Move any of these, then press &quot;Try this change&quot; to see which universities would be added or
         dropped. Nothing is saved until you keep the change.
       </p>
@@ -217,7 +217,7 @@ export default function WhatIfPanel() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-zinc-800">Countries</span>
+            <span className="mb-1 block font-medium text-ink">Countries</span>
             <input
               className={inputClass}
               maxLength={300}
@@ -227,7 +227,7 @@ export default function WhatIfPanel() {
             />
           </label>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-zinc-800">Preferred duration</span>
+            <span className="mb-1 block font-medium text-ink">Preferred duration</span>
             <select className={inputClass} value={draft.duration} onChange={(e) => update("duration", e.target.value)}>
               <option value="">Select...</option>
               {durationOptions(draft.duration).map((o) => (
@@ -237,7 +237,7 @@ export default function WhatIfPanel() {
           </label>
           {examsOpen(draft.englishStatus) && (
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-zinc-800">
+              <span className="mb-1 block font-medium text-ink">
                 {draft.englishTest || "English test"} score
               </span>
               <input
@@ -250,7 +250,7 @@ export default function WhatIfPanel() {
           )}
           {examsOpen(draft.entranceStatus) && (
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-zinc-800">
+              <span className="mb-1 block font-medium text-ink">
                 {draft.entranceTest || "Entrance exam"} score
               </span>
               <input
@@ -265,7 +265,7 @@ export default function WhatIfPanel() {
 
         {draft.loanWanted && (
           <div>
-            <label className="mb-1 block text-sm font-medium text-zinc-800">
+            <label className="mb-1 block text-sm font-medium text-ink">
               Loan repayment: {draft.loanYears ?? 0} years
             </label>
             <input
@@ -282,18 +282,18 @@ export default function WhatIfPanel() {
         )}
       </div>
 
-      <div className="mt-5 rounded-lg bg-zinc-50 p-3 text-sm">
+      <div className="mt-5 rounded-lg bg-ink/5 p-3 text-sm">
         {changes.length === 0 ? (
-          <p className="text-zinc-600">Change something above to try it. Your shortlist matches your profile now.</p>
+          <p className="text-tarmac">Change something above to try it. Your shortlist matches your profile now.</p>
         ) : (
           <>
-            <p className="font-medium text-zinc-900">
+            <p className="font-medium text-ink">
               Changes since this shortlist was made ({changes.length})
             </p>
-            <ul className="mt-1 space-y-0.5 text-zinc-700">
+            <ul className="mt-1 space-y-0.5 text-ink">
               {changes.map((c) => (
                 <li key={c.field}>
-                  {c.label}: <span className="text-zinc-500">{c.from}</span> → <strong>{c.to}</strong>
+                  {c.label}: <span className="text-tarmac">{c.from}</span> → <strong>{c.to}</strong>
                 </li>
               ))}
             </ul>
@@ -320,9 +320,9 @@ export default function WhatIfPanel() {
 
       {result && diff && (
         <div className="mt-5 space-y-3">
-          <h3 className="text-sm font-semibold text-zinc-900">If you make this change</h3>
+          <h3 className="text-sm font-semibold text-ink">If you make this change</h3>
           {diff.added.length === 0 && diff.dropped.length === 0 && relabelled.length === 0 ? (
-            <p className="rounded-lg border border-zinc-200 p-3 text-sm text-zinc-700">
+            <p className="rounded-lg border border-line p-3 text-sm text-ink">
               No difference: your current shortlist still fits.
             </p>
           ) : (
@@ -336,9 +336,9 @@ export default function WhatIfPanel() {
             </ul>
           )}
           {relabelled.length > 0 && (
-            <div className="rounded-lg border border-zinc-300 bg-zinc-50 p-3 text-sm">
-              <p className="font-medium text-zinc-900">Fit labels that changed</p>
-              <ul className="mt-1 space-y-0.5 text-zinc-700">
+            <div className="rounded-lg border border-line bg-ink/5 p-3 text-sm">
+              <p className="font-medium text-ink">Fit labels that changed</p>
+              <ul className="mt-1 space-y-0.5 text-ink">
                 {relabelled.map((r) => (
                   <li key={r.university}>
                     {r.university}: {r.from} → <strong>{r.to}</strong>
@@ -347,8 +347,8 @@ export default function WhatIfPanel() {
               </ul>
             </div>
           )}
-          <p className="text-sm text-zinc-600">{diff.kept.length} other program(s) stay on your shortlist.</p>
-          <p className="text-xs text-zinc-500">
+          <p className="text-sm text-tarmac">{diff.kept.length} other program(s) stay on your shortlist.</p>
+          <p className="text-xs text-tarmac">
             This is the AI&apos;s judgement from general knowledge, not a live lookup. The reasons are shown so
             you can disagree.
           </p>

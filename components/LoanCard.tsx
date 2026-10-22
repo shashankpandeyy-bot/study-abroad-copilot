@@ -32,14 +32,14 @@ export default function LoanCard() {
 
   return (
     <section className={cardClass}>
-      <h2 className="text-lg font-semibold text-zinc-900">Loan and debt</h2>
-      <p className="mt-1 text-sm text-zinc-600">
+      <h2 className="text-lg font-semibold text-ink">Loan and debt</h2>
+      <p className="mt-1 text-sm text-tarmac">
         Plain maths, not AI. Change the numbers to see how the repayment moves.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <label className="block text-sm">
-          <span className="mb-1 block font-medium text-zinc-800">Loan amount (USD)</span>
+          <span className="mb-1 block font-medium text-ink">Loan amount (USD)</span>
           <input
             className={inputClass}
             inputMode="numeric"
@@ -48,7 +48,7 @@ export default function LoanCard() {
           />
         </label>
         <label className="block text-sm">
-          <span className="mb-1 block font-medium text-zinc-800">Repay over (years)</span>
+          <span className="mb-1 block font-medium text-ink">Repay over (years)</span>
           <input
             className={inputClass}
             inputMode="decimal"
@@ -57,7 +57,7 @@ export default function LoanCard() {
           />
         </label>
         <label className="block text-sm">
-          <span className="mb-1 block font-medium text-zinc-800">Interest (% a year)</span>
+          <span className="mb-1 block font-medium text-ink">Interest (% a year)</span>
           <input
             className={inputClass}
             inputMode="decimal"
@@ -69,26 +69,26 @@ export default function LoanCard() {
 
       {ready ? (
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg bg-zinc-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">Monthly payment</p>
-            <p className="text-lg font-semibold text-zinc-900">{usd(summary.monthly)}</p>
+          <div className="rounded-lg bg-ink/5 p-3">
+            <p className="text-xs uppercase tracking-wide text-tarmac">Monthly payment</p>
+            <p className="text-lg font-semibold text-ink">{usd(summary.monthly)}</p>
           </div>
-          <div className="rounded-lg bg-zinc-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">Total repaid</p>
-            <p className="text-lg font-semibold text-zinc-900">{usd(summary.totalRepaid)}</p>
+          <div className="rounded-lg bg-ink/5 p-3">
+            <p className="text-xs uppercase tracking-wide text-tarmac">Total repaid</p>
+            <p className="text-lg font-semibold text-ink">{usd(summary.totalRepaid)}</p>
           </div>
-          <div className="rounded-lg bg-zinc-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-zinc-500">Interest paid</p>
-            <p className="text-lg font-semibold text-zinc-900">{usd(summary.totalInterest)}</p>
+          <div className="rounded-lg bg-ink/5 p-3">
+            <p className="text-xs uppercase tracking-wide text-tarmac">Interest paid</p>
+            <p className="text-lg font-semibold text-ink">{usd(summary.totalInterest)}</p>
           </div>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-zinc-500">Enter a loan amount and repayment years to see the numbers.</p>
+        <p className="mt-4 text-sm text-tarmac">Enter a loan amount and repayment years to see the numbers.</p>
       )}
 
       {ready && (
         <label className="mt-4 block text-sm">
-          <span className="mb-1 block font-medium text-zinc-800">
+          <span className="mb-1 block font-medium text-ink">
             Expected monthly take-home pay after you graduate (USD, optional)
           </span>
           <input
@@ -99,14 +99,14 @@ export default function LoanCard() {
             onChange={(e) => setIncome(e.target.value.replace(/[^0-9]/g, ""))}
           />
           {share !== null && (
-            <span className="mt-2 block text-sm text-zinc-800">
+            <span className="mt-2 block text-sm text-ink">
               The payment would be about {(share * 100).toFixed(0)}% of that pay.
             </span>
           )}
         </label>
       )}
 
-      <p className="mt-3 text-xs text-zinc-500">
+      <p className="mt-3 text-xs text-tarmac">
         Estimate for a standard fixed-rate loan. The interest rate is an assumption: use your lender&apos;s real
         rate and terms. This is not financial advice.
       </p>

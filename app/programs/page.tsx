@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import DeparturesBoard from "@/components/DeparturesBoard";
 import ProgramCard from "@/components/ProgramCard";
 import ProgramCompare from "@/components/ProgramCompare";
 import { errorText, post } from "@/lib/api";
@@ -73,16 +74,18 @@ export default function ProgramsPage() {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8 pb-28">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Your programs</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <h1 className="text-[2rem] font-semibold leading-tight text-ink">Your programs</h1>
+        <p className="mt-1 text-sm text-tarmac">
           Open any program to see what helps you, where the gaps are, and what it would really cost. Select 3 or 4 to
           compare and to get application drafts.
         </p>
       </header>
 
+      <DeparturesBoard programs={shortlist.programs} selected={state.selected} />
+
       {shortlist.assumptions.length > 0 && (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
-          <p className="font-medium text-zinc-900">What we assumed</p>
+        <div className="rounded-lg border border-line bg-ink/5 p-4 text-sm text-ink">
+          <p className="font-medium text-ink">What we assumed</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5">
             {shortlist.assumptions.map((a, i) => (
               <li key={i}>{a}</li>
@@ -93,8 +96,8 @@ export default function ProgramsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {shortlist.programs.map((p) => (
+          <div key={p.id} id={`p-${p.id}`} className="scroll-mt-20">
           <ProgramCard
-            key={p.id}
             program={p}
             profile={state.profile}
             selected={state.selected.includes(p.id)}
@@ -107,12 +110,13 @@ export default function ProgramsPage() {
             checkError={checkErrors[p.id]}
             onCheckSources={() => checkSources(p)}
           />
+          </div>
         ))}
       </div>
 
       {count >= 2 && (
         <section className={cardClass}>
-          <h2 className="mb-3 text-lg font-semibold text-zinc-900">Compare your selection</h2>
+          <h2 className="mb-3 text-lg font-semibold text-ink">Compare your selection</h2>
           <ProgramCompare
             programs={selectedPrograms}
             profile={state.profile}
@@ -129,9 +133,9 @@ export default function ProgramsPage() {
         apply.
       </p>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-white/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-white/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-3 px-4 py-3">
-          <p className="text-sm text-zinc-700">
+          <p className="text-sm text-ink">
             {count} of {MAX_SELECTED} selected
             {count > 0 && count < 3 ? " (pick 3 or 4 to compare)" : ""}
           </p>

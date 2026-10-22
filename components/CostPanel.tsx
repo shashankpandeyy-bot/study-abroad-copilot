@@ -7,7 +7,7 @@ const FIT_TEXT = {
   fits: { label: "Fits your budget", style: "bg-emerald-100 text-emerald-800" },
   stretch: { label: "A stretch", style: "bg-amber-100 text-amber-800" },
   over: { label: "Over your budget", style: "bg-rose-100 text-rose-800" },
-  unknown: { label: "Set a budget to compare", style: "bg-zinc-200 text-zinc-700" },
+  unknown: { label: "Set a budget to compare", style: "bg-ink/10 text-ink" },
 } as const;
 
 export default function CostPanel({ cost, profile }: { cost: CostEstimate; profile: StudentProfile }) {
@@ -25,21 +25,21 @@ export default function CostPanel({ cost, profile }: { cost: CostEstimate; profi
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        <h4 className="text-sm font-semibold text-zinc-900">Cost breakdown</h4>
+        <h4 className="text-sm font-semibold text-ink">Cost breakdown</h4>
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${fit.style}`}>{fit.label}</span>
-        <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600">AI estimate, not a quote</span>
+        <span className="rounded-full bg-ink/5 px-2.5 py-0.5 text-xs text-tarmac">AI estimate, not a quote</span>
       </div>
       <dl className="mt-2 space-y-1 text-sm">
         {rows.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-3">
-            <dt className="text-zinc-600">{k}</dt>
-            <dd className="font-medium text-zinc-900">{v}</dd>
+            <dt className="text-tarmac">{k}</dt>
+            <dd className="font-medium text-ink">{v}</dd>
           </div>
         ))}
         {profile.budgetUsd != null && (
-          <div className="flex justify-between gap-3 border-t border-zinc-200 pt-1">
-            <dt className="text-zinc-600">Your budget per year</dt>
-            <dd className="font-medium text-zinc-900">
+          <div className="flex justify-between gap-3 border-t border-line pt-1">
+            <dt className="text-tarmac">Your budget per year</dt>
+            <dd className="font-medium text-ink">
               {profile.budgetMinUsd != null ? usdRange(profile.budgetMinUsd, profile.budgetUsd) : `Up to ${usdRange(profile.budgetUsd, profile.budgetUsd)}`}
             </dd>
           </div>
@@ -55,7 +55,7 @@ export default function CostPanel({ cost, profile }: { cost: CostEstimate; profi
               : " Turn on a loan in your profile to see the monthly payment."}
         </p>
       )}
-      {cost.notes && <p className="mt-2 text-xs text-zinc-500">{cost.notes}</p>}
+      {cost.notes && <p className="mt-2 text-xs text-tarmac">{cost.notes}</p>}
     </div>
   );
 }
