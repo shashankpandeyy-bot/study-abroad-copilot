@@ -1,0 +1,33 @@
+"use client";
+
+import type { Insight } from "@/lib/types";
+
+export default function FitPanel({ insight }: { insight: Insight }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div>
+        <h4 className="text-sm font-semibold text-emerald-800">What helps you here</h4>
+        <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-zinc-800">
+          {insight.strengths.map((s, i) => (
+            <li key={i}>{s}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold text-rose-800">Gaps and how to close them</h4>
+        <ul className="mt-1 space-y-1.5 text-sm text-zinc-800">
+          {insight.gaps.map((g, i) => (
+            <li key={i}>
+              <span className="font-medium">{g.gap}</span>
+              {g.fix && <span className="block text-zinc-600">Fix: {g.fix}</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="text-xs text-zinc-500 sm:col-span-2">
+        AI analysis from your profile and general knowledge. Entry requirements are typical, so confirm them on the
+        official page.
+      </p>
+    </div>
+  );
+}

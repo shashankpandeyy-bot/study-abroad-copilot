@@ -6,13 +6,14 @@ import { useApp } from "@/lib/state";
 import type { AlumniResponse } from "@/lib/types";
 import { useProgramData } from "@/lib/useProgramData";
 import { btnSecondary, cardClass } from "@/lib/ui";
+import PageLoading from "@/components/PageLoading";
 
 export default function AlumniPage() {
   const { set, askAi } = useApp();
   const d = useProgramData<AlumniResponse>("alumni", "/api/alumni");
 
   if (!d.ready || !d.active) {
-    return <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 text-sm text-zinc-500">Loading...</main>;
+    return <PageLoading />;
   }
   const { state, shortlist } = d.ready;
   const active = d.active;

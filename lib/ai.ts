@@ -7,6 +7,8 @@ import {
 
 // "latest" alias so we never hard-code a model version that Google later retires.
 // Lite, not full Flash: the full model took 30 to 100 seconds per call, beyond Vercel's 60 s limit.
+import type { Source } from "./types";
+
 export const MODEL = "gemini-flash-lite-latest";
 
 export class MissingKeyError extends Error {}
@@ -81,6 +83,32 @@ export async function callTool(opts: {
   return { name: call.name, input: call.args ?? {} };
 }
 
+// Gemini with Google Search. Needs a paid Google plan, so it only runs when GROUNDING=on.
+export async function callGrounded(opts: {
+  system?: string;
+  user: string;
+  maxTokens: number;
+}): Promise<{ text: string; sources: Source[] }> {
+  const response = await getClient().models.generateContent({
+    model: MODEL,
+    contents: opts.user,
+    config: {
+      ...(opts.system ? { systemInstruction: opts.system } : {}),
+      maxOutputTokens: opts.maxTokens,
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+      tools: [{ googleSearch: {} }],
+    },
+  });
+  if (response.candidates?.[0]?.finishReason === "MAX_TOKENS") {
+    throw new BadAnswerError("The answer was cut off. Please try again.");
+  }
+  const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
+  const sources: Source[] = chunks
+    .map((c, i) => ({ index: i + 1, title: c.web?.title ?? "", uri: c.web?.uri ?? "" }))
+    .filter((s) => /^https?:\/\//.test(s.uri));
+  return { text: response.text ?? "", sources };
+}
+
 function isServerBusy(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 503 || err.status === 500);
 }
@@ -111,12 +139,20 @@ export async function withRetry<T>(work: () => Promise<T>, windowMs = 25_000): P
   }
 }
 
+const UNAVAILABLE = "The AI assistant is not available right now. Please try again later.";
+const isProduction = () => process.env.NODE_ENV === "production";
+
 export function errorResponse(err: unknown): Response {
   if (err instanceof BadRequestError) {
     return Response.json({ error: err.message }, { status: 400 });
   }
   if (err instanceof MissingKeyError) {
-    return Response.json({ error: err.message, code: "missing_key" }, { status: 500 });
+    console.error(err.message);
+    // Visitors of the live site never see setup instructions. Developers do.
+    return Response.json(
+      { error: isProduction() ? UNAVAILABLE : err.message, code: "missing_key" },
+      { status: 500 }
+    );
   }
   if (err instanceof BadAnswerError) {
     console.error("Bad AI answer:", err.message);
@@ -126,7 +162,10 @@ export function errorResponse(err: unknown): Response {
     console.error("Gemini API error:", err.status, err.message.slice(0, 300));
     if (err.status === 401 || err.status === 403 || /api key/i.test(err.message)) {
       return Response.json(
-        { error: "Gemini rejected the API key. Check GEMINI_API_KEY in .env.local.", code: "bad_key" },
+        {
+          error: isProduction() ? UNAVAILABLE : "Gemini rejected the API key. Check GEMINI_API_KEY in .env.local.",
+          code: "bad_key",
+        },
         { status: 502 }
       );
     }

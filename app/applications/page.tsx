@@ -10,6 +10,7 @@ import { useApp } from "@/lib/state";
 import type { ApplicationPackage, Program, QA, StudentProfile } from "@/lib/types";
 import { useRequireShortlist } from "@/lib/useGuard";
 import { btnPrimary, btnSecondary, cardClass, categoryStyle } from "@/lib/ui";
+import PageLoading from "@/components/PageLoading";
 
 export default function ApplicationsPage() {
   const ready = useRequireShortlist();
@@ -45,7 +46,7 @@ export default function ApplicationsPage() {
   }, [ready, runDraft]);
 
   if (!ready) {
-    return <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 text-sm text-zinc-500">Loading...</main>;
+    return <PageLoading />;
   }
   const { state, shortlist } = ready;
   const programs = state.selected

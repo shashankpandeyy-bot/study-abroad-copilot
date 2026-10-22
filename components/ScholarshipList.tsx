@@ -1,6 +1,8 @@
 "use client";
 
+import { usdRange } from "@/lib/cost";
 import type { Scholarship } from "@/lib/types";
+import { scholarshipLink } from "@/lib/verify";
 import { btnPrimary, btnSmall } from "@/lib/ui";
 
 const matchStyle = {
@@ -11,73 +13,77 @@ const matchStyle = {
 
 export default function ScholarshipList({
   scholarships,
-  note,
   programId,
   saved,
   onToggleSave,
   onAsk,
 }: {
   scholarships: Scholarship[];
-  note: string;
   programId: string;
   saved: string[];
   onToggleSave: (key: string) => void;
   onAsk: (s: Scholarship) => void;
 }) {
   return (
-    <div className="space-y-4">
-      {scholarships.length === 0 && (
-        <p className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700">
-          The AI could not name specific scholarships it is confident about for this program. Check the
-          university&apos;s funding page and your home country&apos;s study-abroad schemes.
-        </p>
-      )}
-      <ul className="space-y-3">
-        {scholarships.map((s) => {
-          const key = `${programId}::${s.name}`;
-          const isSaved = saved.includes(key);
-          return (
-            <li key={key} className="rounded-xl border border-zinc-200 bg-white p-4">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-semibold text-zinc-900">{s.name}</h3>
-                  {s.provider && <p className="text-sm text-zinc-600">{s.provider}</p>}
-                </div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${matchStyle[s.match]}`}>
-                  Eligibility: {s.match}
-                </span>
+    <ul className="space-y-3">
+      {scholarships.map((s) => {
+        const key = `${programId}::${s.name}`;
+        const isSaved = saved.includes(key);
+        const link = scholarshipLink(s);
+        return (
+          <li key={key} className="rounded-xl border border-zinc-200 bg-white p-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h3 className="font-semibold text-zinc-900">{s.name}</h3>
+                {s.provider && <p className="text-sm text-zinc-600">{s.provider}</p>}
               </div>
-              <dl className="mt-3 space-y-1 text-sm text-zinc-800">
-                <div>
-                  <dt className="inline font-medium">Typical value: </dt>
-                  <dd className="inline">{s.typicalValue || "Not stated"}</dd>
-                </div>
-                <div>
-                  <dt className="inline font-medium">Typical eligibility: </dt>
-                  <dd className="inline">{s.eligibility || "Not stated"}</dd>
-                </div>
-                <div>
-                  <dt className="inline font-medium">Why this match: </dt>
-                  <dd className="inline">{s.matchReason}</dd>
-                </div>
-              </dl>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" className={isSaved ? btnPrimary + " !px-3 !py-1.5" : btnSmall} onClick={() => onToggleSave(key)}>
-                  {isSaved ? "Saved" : "Save"}
-                </button>
-                <button type="button" className={btnSmall} onClick={() => onAsk(s)}>
-                  Ask the AI about this
-                </button>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${matchStyle[s.match]}`}>
+                Eligibility: {s.match}
+              </span>
+            </div>
+            <dl className="mt-3 space-y-1 text-sm text-zinc-800">
+              <div>
+                <dt className="inline font-medium">Rough value: </dt>
+                <dd className="inline">
+                  {s.amountLowUsd != null && s.amountHighUsd != null ? (
+                    <>
+                      about {usdRange(s.amountLowUsd, s.amountHighUsd)} per year{" "}
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">AI estimate</span>
+                    </>
+                  ) : (
+                    s.typicalValue || "Amount not stated"
+                  )}
+                </dd>
               </div>
-            </li>
-          );
-        })}
-      </ul>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-        {note || "Confirm every detail on the official scholarship page."} These are recalled from the AI&apos;s
-        general knowledge and may be out of date or incomplete. Eligibility is not the same as winning: most
-        scholarships are competitive. No amounts or deadlines are given, so check them on the official page.
-      </p>
-    </div>
+              {s.amountLowUsd != null && s.typicalValue && (
+                <div>
+                  <dt className="inline font-medium">Covers: </dt>
+                  <dd className="inline">{s.typicalValue}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="inline font-medium">Typical eligibility: </dt>
+                <dd className="inline">{s.eligibility || "Not stated"}</dd>
+              </div>
+              <div>
+                <dt className="inline font-medium">Why this match: </dt>
+                <dd className="inline">{s.matchReason}</dd>
+              </div>
+            </dl>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className={isSaved ? btnPrimary + " !px-3 !py-1.5" : btnSmall} onClick={() => onToggleSave(key)}>
+                {isSaved ? "Saved" : "Save"}
+              </button>
+              <button type="button" className={btnSmall} onClick={() => onAsk(s)}>
+                Ask the AI about this
+              </button>
+              <a href={link.url} target="_blank" rel="noopener noreferrer" className={btnSmall}>
+                {link.label}
+              </a>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

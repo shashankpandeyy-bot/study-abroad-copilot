@@ -28,6 +28,23 @@ export const STRONG_SAMPLE: StudentProfile = {
   loanWanted: true,
   loanAmountUsd: 20000,
   loanYears: 7,
+  currentLevel: "bachelor_done",
+  priorField: "Computer Science",
+  graduationYear: "2024",
+  gradeScale: "cgpa10",
+  gradeValue: "8.4",
+  interests: ["Machine learning", "Software engineering"],
+  priorities: ["Scholarships", "Job prospects"],
+  studyMode: "full",
+  teachingLanguage: "english",
+  thesisPreference: "either",
+  budgetMinUsd: 25000,
+  fundingSources: ["Savings", "Family support", "Education loan"],
+  scholarshipMinUsd: 3000,
+  scholarshipMaxUsd: 12000,
+  workYears: "1-2",
+  hasResearch: "yes",
+  careerGoal: "Industry job",
 };
 
 export const THIN_SAMPLE: StudentProfile = {

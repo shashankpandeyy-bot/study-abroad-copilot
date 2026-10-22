@@ -11,8 +11,10 @@ import { btnPrimary, btnSmall } from "@/lib/ui";
 const PAGE_NAMES: Record<string, string> = {
   "/": "intake",
   "/profile": "profile",
+  "/programs": "programs",
   "/applications": "applications",
-  "/scholarships": "scholarships",
+  "/funding": "funding",
+  "/plan": "plan",
   "/alumni": "alumni",
 };
 
@@ -36,7 +38,8 @@ export default function ChatDock() {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [state.chat, busy, state.chatOpen]);
 
-  if (!hydrated) return null;
+  // A shared plan is read-only and belongs to someone else, so the viewer gets no chat about it.
+  if (!hydrated || pathname.startsWith("/plan/shared")) return null;
 
   async function send() {
     const text = input.trim();
@@ -88,7 +91,7 @@ export default function ChatDock() {
       <button
         type="button"
         onClick={() => set({ chatOpen: true })}
-        className="fixed bottom-20 right-4 z-30 rounded-full bg-indigo-600 px-5 py-3 text-sm font-medium text-white shadow-lg hover:bg-indigo-700"
+        className="fixed bottom-20 right-4 z-30 rounded-full bg-indigo-600 px-5 py-3 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 print:hidden"
       >
         Ask the AI
       </button>
@@ -98,7 +101,7 @@ export default function ChatDock() {
   return (
     <section
       aria-label="AI advisor chat"
-      className="fixed bottom-20 right-4 z-30 flex h-[min(34rem,72vh)] w-[min(26rem,calc(100vw-2rem))] flex-col rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+      className="fixed inset-0 z-40 flex flex-col bg-white sm:inset-auto sm:bottom-20 sm:right-4 sm:z-30 sm:h-[min(34rem,72vh)] sm:w-[min(26rem,calc(100vw-2rem))] sm:rounded-2xl sm:border sm:border-zinc-200 sm:shadow-2xl"
     >
       <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3">
         <h2 className="text-sm font-semibold text-zinc-900">Your advisor</h2>

@@ -124,7 +124,11 @@ export function canDropPrograms(from: StudentProfile, to: StudentProfile): boole
     from.englishScore !== to.englishScore ||
     from.entranceScore !== to.entranceScore ||
     from.englishStatus !== to.englishStatus ||
-    from.entranceStatus !== to.entranceStatus
+    from.entranceStatus !== to.entranceStatus ||
+    from.teachingLanguage !== to.teachingLanguage ||
+    from.studyMode !== to.studyMode ||
+    from.thesisPreference !== to.thesisPreference ||
+    JSON.stringify(from.priorities) !== JSON.stringify(to.priorities)
   );
 }
 
@@ -132,7 +136,7 @@ export type ProfileChange = { field: ProfileField; label: string; from: string; 
 
 export function describeProfileChanges(from: StudentProfile, to: StudentProfile): ProfileChange[] {
   return (Object.keys(FIELD_LABELS) as ProfileField[])
-    .filter((f) => from[f] !== to[f])
+    .filter((f) => JSON.stringify(from[f]) !== JSON.stringify(to[f]))
     .map((f) => ({
       field: f,
       label: FIELD_LABELS[f],

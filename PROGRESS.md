@@ -10,10 +10,13 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Test 2: personalised application with chance of being shortlisted | Passed in the browser |
 | Test 3: asks follow-up questions and uses the answers | Passed in the browser (thin profile, gibberish and "Skip" also checked) |
 | Multi-page journey: intake, profile, what-if, 3-4 drafts, chat, scholarships, alumni | Built. Each page was opened and used in a desktop browser |
+| **Version 4:** 6-step intake, profile strength score, strengths and gaps, cost breakdown and compare table, funding range slider, plan checklist, calendar file, Word and PDF export, share link | Built. Each was used in a desktop browser against the live AI (see the version 4 screenshots). PDF print, a real calendar app and Word itself were not opened |
+| Version 4 on a phone | Every page measured at 375 px wide: no sideways scrolling. Not tested on a real phone |
+| Google Search grounding with source links | Code and unit tests only. **Not run for real**: Google refused the search tool on the free key. Off by default, with "verify links" as the fallback |
 | Loan and debt calculator | Built, tested against published loan-table values |
-| Plain-code tests (`npm test`) | 5 test files, all passing, no key needed |
-| `tsc`, lint, production build | Clean |
-| Deployed prototype | **Not yet.** Needs a Vercel login and the API key added there |
+| Plain-code tests (`npm test`) | 8 test files, all passing, no key needed |
+| `tsc`, lint | Clean |
+| Deployed prototype | Version 3 is live. **Version 4 is not deployed yet**, and the live site has no AI key set until the owner adds `GEMINI_API_KEY` in Vercel |
 
 ## Screenshots
 
@@ -25,8 +28,21 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | **Draft comparison.** Three programs side by side: chance, statement length, blanks to fill, numbers and wording to check. | ![Applications compare](docs/progress/04-applications-compare.jpg) |
 | **One draft opened.** Chance with reasons, and the legend for yellow (blank), orange (number you never gave) and pink (wording you never used). | ![Draft expanded](docs/progress/05-draft-expanded.jpg) |
 | **Chatbot.** It suggests a profile change and the student presses Apply. It never changes anything on its own. | ![Chat proposal](docs/progress/06-chat-proposal.jpg) |
-| **Scholarships.** Eligibility match per program, save, and "Ask the AI about this". No amounts or deadlines are shown. | ![Scholarships](docs/progress/07-scholarships.jpg) |
+| **Scholarships (version 3).** Eligibility match per program, save, and "Ask the AI about this". Version 4 adds rough amount ranges, see below. | ![Scholarships](docs/progress/07-scholarships.jpg) |
 | **Alumni paths.** Clearly labelled illustrative, not real people. | ![Alumni](docs/progress/08-alumni.jpg) |
+
+### Version 4
+
+| | |
+|---|---|
+| **Strengths and gaps for one program.** What helps, and each gap with a fix. | ![Strengths and gaps](docs/progress/09-strengths-and-gaps.jpg) |
+| **Cost breakdown.** Tuition and living as ranges, "AI estimate, not a quote", "Over your budget" with the gap and the loan payment on it (worked out by code). | ![Cost breakdown](docs/progress/10-cost-breakdown.jpg) |
+| **Compare table** for three selected programs: fit, length, tuition, living, total, against budget, loan payment on any gap. | ![Program compare](docs/progress/11-program-compare.jpg) |
+| **Plan checklist.** 16 tasks for Fall 2027. Typical dates say "not an official date". The student ticks tasks and confirms dates, and progress updates. | ![Plan checklist](docs/progress/12-plan-checklist.jpg) |
+| **Shared plan opened with no saved data.** Read-only, name left out. | ![Shared plan](docs/progress/13-shared-plan.jpg) |
+| **A damaged share link.** A plain message and a way back, no crash. | ![Tampered link](docs/progress/14-tampered-link.jpg) |
+| **Funding range slider.** Raising the lower end regrouped the list: 1 within range, 3 outside. Amounts are labelled AI estimates. | ![Funding range](docs/progress/15-funding-range.jpg) |
+| **Phone width.** Guided intake at 375 px, with option chips. | ![Phone intake](docs/progress/16-phone-intake.jpg) |
 
 ## Timeline
 
@@ -46,6 +62,14 @@ What was built, what broke along the way, and how it was fixed. Everything below
    - AI drafts sometimes added dramatic wording the student never used ("witnessed firsthand"). Added a prompt rule and a pink highlight as a backstop.
    - A retry loop could run past the 60 second hosting limit. No retry now starts after 25 seconds.
    - Running `npm run build` while the dev server was running made pages hang on "Loading...". Documented in the README.
+8. **Submitted, then found the live link had no key.** The Vercel project had no `GEMINI_API_KEY`, so every AI step on the submitted link failed with a message that named `.env.local`. The message is now friendly in production, and `/api/health` and `scripts/verify-deploy.sh` make the problem visible in one command.
+9. **Version 4.** A richer intake (6 steps, mostly option chips, ranges, score and grade checks), a profile strength score, strengths and gaps, a cost breakdown and compare table, funding ranges, a plan page with checklist, calendar file, PDF and Word export and a share link, and a design and phone pass. Plan first, approved, then built.
+10. **Bugs found while testing version 4, and fixed.**
+    - The profile page crashed when opening data saved by version 3 (a list field was missing). Saved and shared data now go through one cleaning step, with a regression test.
+    - The chat did not know the new pages, and described the Plan page as the shortlist page. The prompt now says what each page is for. Re-asked after the fix, it described the checklist, downloads, calendar file and share link correctly.
+    - The chat button appeared on a shared plan, for a stranger with an empty profile. It is hidden there, and the wording on a shared plan no longer says "your profile".
+    - Two open tabs share one saved copy, and a fresh tab with nothing saved overwrote it. This is a limit of having no accounts, now listed in the README.
+    - Grounding could not be tested: Google refused the search tool on the free key (error 429). Built the "verify links" fallback and left grounding off rather than claim something unverified.
 
 ## Measured results (manual runs, live API)
 
@@ -58,10 +82,21 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Scholarships, 3 runs | No specific amounts in any run |
 | Alumni, 2 runs | No names, quotes, salaries or statistics |
 | Chat: new fact / general question / "what if" question / instruction hijack | Suggested a change only for the new fact. No change for the others. The system prompt was not revealed |
+| Version 4, sample profile (local, live API) | Profile strength 85 of 100 (21/15/19/15/15), matching a hand calculation in the tests. IELTS 11 refused with a red message |
+| Version 4, strengths, gaps and cost for one program | About 10 seconds. Cost shown as a range with the gap and loan payment worked out by code |
+| Version 4, compare table for 3 programs | Two programs analysed in one click, about 10 seconds |
+| Version 4, three application drafts | All three written. 565, 548 and 530 words. One blank each, 0 to 1 pieces of wording to check |
+| Version 4, funding lookup for one program | About 25 seconds. Slider change regrouped the list instantly without another AI call |
+| Version 4, share link with a chosen draft | 6,266 characters. Opened with no saved data, read-only, name left out. A damaged copy showed the "could not be opened" page |
+| Version 4, exports | Calendar file valid (one confirmed date, one event). Word file is a real .docx with 1 yellow highlight, matching the 1 blank in that draft |
+| `scripts/verify-deploy.sh` against the local server | 14 of 14 checks passed |
 
 ## What is not proven yet
 
-- The latest what-if change (drop gating and the leaked-reasoning filter) is covered by unit tests, but it was not re-run against the live AI before the first commit.
-- Facts about programs and scholarships come from the AI's memory and are not verified.
-- No phone-size check of the new pages, and no automated browser tests.
-- Not deployed. See the README for the Vercel steps.
+- **Grounding with source links** has not run against the real service (see above). Nothing in the app claims a figure was checked.
+- **Version 4 is not deployed**, and the live site cannot make AI calls until `GEMINI_API_KEY` is added in Vercel. After that, `scripts/verify-deploy.sh <live address>` is the test.
+- The PDF print window, the calendar file inside a real calendar app, the Word file opened in Word, and a real phone were not checked.
+- Facts, costs and scholarship amounts come from the AI's memory and are estimates. Strengths and gaps, and the chance estimate, are AI judgement.
+- The what-if change (drop gating and the leaked-reasoning filter) is covered by unit tests and was exercised in earlier live runs, but not re-run in version 4.
+- The quota is open: anyone with the live link can use the key. A spend limit in Google's console is the protection.
+- No automated browser tests.

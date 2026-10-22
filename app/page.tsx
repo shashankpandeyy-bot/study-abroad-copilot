@@ -16,7 +16,9 @@ export default function IntakePage() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   // Only read after hydration, so server and browser render the same thing first.
-  const demo = hydrated && new URLSearchParams(window.location.search).has("demo");
+  const query = hydrated ? new URLSearchParams(window.location.search) : null;
+  const demo = query?.has("demo") ?? false;
+  const initialStep = Number(query?.get("step")) || 0;
 
   async function requestShortlist(profile: StudentProfile, answers: QA[], round: number, skip: boolean) {
     setBusy("Reading your profile and picking universities...");
@@ -123,6 +125,8 @@ export default function IntakePage() {
             profile={state.profile}
             busy={!!busy}
             demo={demo}
+            initialStep={initialStep}
+            onSaveOnly={state.shortlist ? () => router.push("/profile") : undefined}
             submitLabel={state.shortlist ? "Update my shortlist" : "Find my universities"}
             onChange={(profile) => set({ profile })}
             onSubmit={(profile) => requestShortlist(profile, [], 0, false)}

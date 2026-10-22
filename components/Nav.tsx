@@ -6,8 +6,10 @@ import { useApp } from "@/lib/state";
 
 const LINKS = [
   { href: "/profile", label: "Profile" },
+  { href: "/programs", label: "Programs" },
   { href: "/applications", label: "Applications" },
-  { href: "/scholarships", label: "Scholarships" },
+  { href: "/funding", label: "Funding" },
+  { href: "/plan", label: "Plan" },
   { href: "/alumni", label: "Alumni" },
 ];
 
@@ -24,22 +26,20 @@ export default function Nav() {
   }
 
   return (
-    <header className="border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-        <Link href="/" className="text-base font-bold tracking-tight text-zinc-900">
+    <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur print:hidden">
+      <div className="mx-auto flex w-full max-w-5xl items-center gap-4 px-4 py-2.5">
+        <Link href="/" className="shrink-0 text-base font-bold tracking-tight text-zinc-900">
           Study Abroad Co-Pilot
         </Link>
         {state.shortlist && (
-          <nav className="flex flex-wrap items-center gap-1 text-sm">
+          <nav aria-label="Main" className="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 text-sm">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 aria-current={pathname === l.href ? "page" : undefined}
-                className={`rounded-md px-3 py-1.5 ${
-                  pathname === l.href
-                    ? "bg-indigo-50 font-medium text-indigo-700"
-                    : "text-zinc-600 hover:bg-zinc-100"
+                className={`shrink-0 rounded-md px-3 py-1.5 ${
+                  pathname === l.href ? "bg-indigo-50 font-medium text-indigo-700" : "text-zinc-600 hover:bg-zinc-100"
                 }`}
               >
                 {l.label}
@@ -51,7 +51,7 @@ export default function Nav() {
           <button
             type="button"
             onClick={startOver}
-            className="ml-auto rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:bg-zinc-100"
+            className="ml-auto shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:bg-zinc-100"
           >
             Start over
           </button>

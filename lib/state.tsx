@@ -1,15 +1,19 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { cleanProfile } from "./clean";
 import { EMPTY_PROFILE } from "./profileFields";
 import type {
   AlumniResponse,
   ApplicationPackage,
   ChatMessage,
+  FactsResult,
+  Insight,
   Program,
   QA,
   ScholarshipResponse,
   StudentProfile,
+  Task,
 } from "./types";
 
 export type DraftState = {
@@ -34,6 +38,9 @@ export type AppState = {
   alumni: Record<string, AlumniResponse>;
   savedScholarships: string[];
   savedQuestions: string[];
+  insights: Record<string, Insight>;
+  facts: Record<string, FactsResult>;
+  tasks: Task[];
   chat: ChatMessage[];
   chatOpen: boolean;
   chatDraft: string;
@@ -53,6 +60,9 @@ const INITIAL: AppState = {
   alumni: {},
   savedScholarships: [],
   savedQuestions: [],
+  insights: {},
+  facts: {},
+  tasks: [],
   chat: [],
   chatOpen: false,
   chatDraft: "",
@@ -78,10 +88,12 @@ function load(): AppState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return INITIAL;
     const saved = JSON.parse(raw) as Partial<AppState>;
+    // Data saved by an older version is cleaned into the current shape, so no field is ever missing.
     return {
       ...INITIAL,
       ...saved,
-      profile: { ...EMPTY_PROFILE, ...(saved.profile ?? {}) },
+      profile: cleanProfile(saved.profile) ?? EMPTY_PROFILE,
+      shortlistProfile: saved.shortlistProfile ? cleanProfile(saved.shortlistProfile) : null,
       chatOpen: false,
       chatDraft: "",
     };

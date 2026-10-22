@@ -1,42 +1,42 @@
 import { BadAnswerError, BadRequestError } from "./ai";
 import { diffPrograms, programId, sameUniversity, wordCount } from "./checks";
-import { EMPTY_PROFILE, FIELD_LABELS } from "./profileFields";
+import {
+  FIELD_MAX,
+  cleanMonth,
+  cleanProfile,
+  cleanYear,
+  isObj,
+  str,
+  strList,
+  toNumber,
+} from "./clean";
+import {
+  CURRENT_LEVELS,
+  GRADE_SCALES,
+  MAX_PRIORITIES,
+  STUDY_MODES,
+  TEACHING_LANGUAGES,
+  THESIS_PREFERENCES,
+  WORK_YEARS,
+} from "./options";
+import { FIELD_LABELS } from "./profileFields";
 import type {
   AlumniResponse,
   ApplicationPackage,
   Category,
   ChanceBand,
-  ExamStatus,
+  Insight,
   ProfileField,
   Program,
   Proposal,
   QA,
-  Risk,
   Scholarship,
-  ScholarshipNeed,
   StudentProfile,
   WhatIfNote,
   WhatIfResponse,
 } from "./types";
 
-const FIELD_MAX = 1500;
 const MAX_ANSWERS = 10;
-
-function isObj(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null && !Array.isArray(v);
-}
-
-function str(v: unknown, max = FIELD_MAX): string {
-  return typeof v === "string" ? v.trim().slice(0, max) : "";
-}
-
-function strList(v: unknown, maxItems: number, maxLen = 600): string[] {
-  if (!Array.isArray(v)) return [];
-  return v
-    .map((x) => str(x, maxLen))
-    .filter(Boolean)
-    .slice(0, maxItems);
-}
 
 // A value outside the allowed list is an AI mistake. Fail loudly instead of guessing a replacement.
 function oneOf<T extends string>(v: unknown, allowed: readonly T[]): T {
@@ -44,27 +44,6 @@ function oneOf<T extends string>(v: unknown, allowed: readonly T[]): T {
     throw new BadAnswerError("The AI returned an unexpected answer. Please try again.");
   }
   return v as T;
-}
-
-// Values typed by the student (not the AI) can fall back to a default.
-function pick<T extends string>(v: unknown, allowed: readonly T[], fallback: T): T {
-  return allowed.includes(v as T) ? (v as T) : fallback;
-}
-
-// Accepts 50000, "50,000", "USD 50,000" and "50k". Returns null for anything else.
-function toNumber(v: unknown, min: number, max: number): number | null {
-  let n: number;
-  if (typeof v === "number") {
-    n = v;
-  } else if (typeof v === "string") {
-    const text = v.toLowerCase().replace(/,/g, "");
-    const match = text.match(/(\d+(?:\.\d+)?)\s*(k)?/);
-    if (!match) return null;
-    n = Number(match[1]) * (match[2] ? 1000 : 1);
-  } else {
-    return null;
-  }
-  return Number.isFinite(n) && n >= min && n <= max ? n : null;
 }
 
 export async function readBody(request: Request): Promise<Record<string, unknown>> {
@@ -77,37 +56,11 @@ const BANDS = ["Low", "Medium", "High"] as const;
 const CATEGORIES = ["Reach", "Match", "Safe"] as const;
 const RISKS = ["low", "balanced", "high"] as const;
 const NEEDS = ["essential", "helpful", "none"] as const;
-const STATUSES = ["", "taken", "planned", "none"] as const;
 
 // Cleans whatever the browser sent, without requiring any content (the chat works before the intake is filled).
 export function parseProfileLoose(raw: unknown): StudentProfile {
-  if (!isObj(raw)) throw new BadRequestError("Missing student profile.");
-  const loanWanted = raw.loanWanted === true;
-  const profile: StudentProfile = {
-    degreeLevel: str(raw.degreeLevel, 100),
-    field: str(raw.field, 200),
-    duration: str(raw.duration, 100),
-    homeCountry: str(raw.homeCountry, 100),
-    countries: str(raw.countries, 300),
-    budgetUsd: toNumber(raw.budgetUsd, 0, 1_000_000),
-    risk: pick<Risk>(raw.risk, RISKS, EMPTY_PROFILE.risk),
-    scholarshipNeed: pick<ScholarshipNeed>(raw.scholarshipNeed, NEEDS, EMPTY_PROFILE.scholarshipNeed),
-    englishStatus: pick<ExamStatus>(raw.englishStatus, STATUSES, ""),
-    englishTest: str(raw.englishTest, 100),
-    englishScore: str(raw.englishScore, 50),
-    entranceStatus: pick<ExamStatus>(raw.entranceStatus, STATUSES, ""),
-    entranceTest: str(raw.entranceTest, 100),
-    entranceScore: str(raw.entranceScore, 50),
-    grades: str(raw.grades, 300),
-    experience: str(raw.experience),
-    activities: str(raw.activities),
-    intake: str(raw.intake, 100),
-    about: str(raw.about),
-    loanWanted,
-    loanAmountUsd: loanWanted ? toNumber(raw.loanAmountUsd, 0, 1_000_000) : null,
-    loanYears: loanWanted ? toNumber(raw.loanYears, 0, 40) : null,
-    loanRatePct: toNumber(raw.loanRatePct, 0, 40) ?? EMPTY_PROFILE.loanRatePct,
-  };
+  const profile = cleanProfile(raw);
+  if (!profile) throw new BadRequestError("Missing student profile.");
   return profile;
 }
 
@@ -115,13 +68,18 @@ export function parseProfile(raw: unknown): StudentProfile {
   const profile = parseProfileLoose(raw);
   const hasContent =
     profile.budgetUsd != null ||
+    profile.budgetMinUsd != null ||
+    profile.interests.length > 0 ||
     [
       profile.degreeLevel,
       profile.field,
+      profile.priorField,
       profile.countries,
       profile.grades,
+      profile.gradeValue,
       profile.experience,
       profile.activities,
+      profile.careerGoal,
       profile.intake,
       profile.about,
       profile.englishTest,
@@ -285,56 +243,84 @@ export function assertWhatIfExplained(current: Program[], result: WhatIfResponse
 }
 
 const TEXT_CAPS: Partial<Record<ProfileField, number>> = {
+  fullName: 80,
+  priorField: 200,
+  gradeValue: 40,
+  grades: 300,
   degreeLevel: 100,
   field: 200,
   duration: 100,
+  intake: 100,
   homeCountry: 100,
   countries: 300,
   englishTest: 100,
   englishScore: 50,
   entranceTest: 100,
   entranceScore: 50,
-  grades: 300,
   experience: FIELD_MAX,
   activities: FIELD_MAX,
-  intake: 100,
+  careerGoal: 300,
   about: FIELD_MAX,
 };
 
+const nonEmpty = (list: readonly { value: string }[]) => list.map((x) => x.value);
+
+const ENUMS: Partial<Record<ProfileField, readonly string[]>> = {
+  risk: RISKS,
+  scholarshipNeed: NEEDS,
+  englishStatus: ["taken", "planned", "none"],
+  entranceStatus: ["taken", "planned", "none"],
+  currentLevel: nonEmpty(CURRENT_LEVELS),
+  gradeScale: nonEmpty(GRADE_SCALES),
+  studyMode: nonEmpty(STUDY_MODES),
+  teachingLanguage: nonEmpty(TEACHING_LANGUAGES),
+  thesisPreference: nonEmpty(THESIS_PREFERENCES),
+  workYears: nonEmpty(WORK_YEARS),
+  hasResearch: ["yes", "no"],
+};
+
+const NUMBER_FIELDS: Partial<Record<ProfileField, [number, number]>> = {
+  budgetUsd: [0, 1_000_000],
+  budgetMinUsd: [0, 1_000_000],
+  loanAmountUsd: [0, 1_000_000],
+  scholarshipMinUsd: [0, 1_000_000],
+  scholarshipMaxUsd: [0, 1_000_000],
+  loanYears: [0, 40],
+  loanRatePct: [0, 40],
+};
+
+const LIST_FIELDS: Partial<Record<ProfileField, { max: number; len: number }>> = {
+  interests: { max: 8, len: 60 },
+  priorities: { max: MAX_PRIORITIES, len: 40 },
+  fundingSources: { max: 5, len: 40 },
+};
+
 // Returns undefined when the value is not acceptable for that field, so the proposal is dropped.
-function coerceValue(field: ProfileField, raw: unknown): string | number | boolean | undefined {
-  switch (field) {
-    case "budgetUsd":
-    case "loanAmountUsd":
-      return toNumber(raw, 0, 1_000_000) ?? undefined;
-    case "loanYears":
-      return toNumber(raw, 0, 40) ?? undefined;
-    case "loanRatePct":
-      return toNumber(raw, 0, 40) ?? undefined;
-    case "risk":
-      return typeof raw === "string" && (RISKS as readonly string[]).includes(raw.toLowerCase())
-        ? raw.toLowerCase()
-        : undefined;
-    case "scholarshipNeed":
-      return typeof raw === "string" && (NEEDS as readonly string[]).includes(raw.toLowerCase())
-        ? raw.toLowerCase()
-        : undefined;
-    case "englishStatus":
-    case "entranceStatus":
-      return typeof raw === "string" && ["taken", "planned", "none"].includes(raw.toLowerCase())
-        ? raw.toLowerCase()
-        : undefined;
-    case "loanWanted": {
-      const t = String(raw).toLowerCase();
-      if (["yes", "true", "1"].includes(t)) return true;
-      if (["no", "false", "0"].includes(t)) return false;
-      return undefined;
-    }
-    default: {
-      const text = str(raw, TEXT_CAPS[field] ?? 300);
-      return text || undefined;
-    }
+function coerceValue(field: ProfileField, raw: unknown): string | number | boolean | string[] | undefined {
+  if (field === "loanWanted") {
+    const t = String(raw).toLowerCase();
+    if (["yes", "true", "1"].includes(t)) return true;
+    if (["no", "false", "0"].includes(t)) return false;
+    return undefined;
   }
+  const range = NUMBER_FIELDS[field];
+  if (range) return toNumber(raw, range[0], range[1]) ?? undefined;
+  const allowed = ENUMS[field];
+  if (allowed) {
+    const t = typeof raw === "string" ? raw.toLowerCase() : "";
+    return allowed.includes(t) ? t : undefined;
+  }
+  const list = LIST_FIELDS[field];
+  if (list) {
+    const items = Array.isArray(raw)
+      ? strList(raw, list.max, list.len)
+      : strList(String(raw ?? "").split(","), list.max, list.len);
+    return items.length ? items : undefined;
+  }
+  if (field === "englishPlanned" || field === "entrancePlanned") return cleanMonth(raw) || undefined;
+  if (field === "graduationYear") return cleanYear(raw) || undefined;
+  const text = str(raw, TEXT_CAPS[field] ?? 300);
+  return text || undefined;
 }
 
 export function parseChatMessages(raw: unknown): { role: "user" | "assistant"; text: string }[] {
@@ -378,10 +364,22 @@ export function parseScholarshipsInput(raw: unknown): { scholarships: Scholarshi
     .map((s) => {
       const name = str(s.name, 200);
       if (!name) throw new BadAnswerError("The AI returned a scholarship without a name. Please try again.");
+      let amountLowUsd = toNumber(s.amountLowUsd, 0, 200_000);
+      let amountHighUsd = toNumber(s.amountHighUsd, 0, 200_000);
+      if (amountLowUsd != null && amountHighUsd != null && amountLowUsd > amountHighUsd) {
+        throw new BadAnswerError("The AI returned an amount range the wrong way round. Please try again.");
+      }
+      // A range needs both ends. A single number would pass for an exact figure, so it is dropped.
+      if (amountLowUsd == null || amountHighUsd == null) {
+        amountLowUsd = null;
+        amountHighUsd = null;
+      }
       return {
         name,
         provider: str(s.provider, 200),
         typicalValue: str(s.typicalValue, 300),
+        amountLowUsd,
+        amountHighUsd,
         eligibility: str(s.eligibility, 500),
         match: oneOf(s.match, ["likely", "maybe", "unlikely"] as const),
         matchReason: str(s.matchReason, 400),
@@ -404,4 +402,40 @@ export function parseAlumniInput(raw: unknown): AlumniResponse {
     .filter((p) => p.title);
   if (paths.length === 0) throw new BadAnswerError("The AI returned no alumni paths. Please try again.");
   return { paths, questionsForAlumni: strList(raw.questionsForAlumni, 8, 300) };
+}
+
+export function parseInsightInput(raw: unknown): Insight {
+  if (!isObj(raw)) throw new BadAnswerError("The AI returned an unexpected program analysis. Please try again.");
+  const cost = isObj(raw.cost) ? raw.cost : {};
+  const tuitionLowUsd = toNumber(cost.tuitionLowUsd, 0, 200_000);
+  const tuitionHighUsd = toNumber(cost.tuitionHighUsd, 0, 200_000);
+  const livingLowUsd = toNumber(cost.livingLowUsd, 0, 100_000);
+  const livingHighUsd = toNumber(cost.livingHighUsd, 0, 100_000);
+  const years = toNumber(cost.years, 0.5, 8);
+  if (
+    tuitionLowUsd == null ||
+    tuitionHighUsd == null ||
+    livingLowUsd == null ||
+    livingHighUsd == null ||
+    years == null
+  ) {
+    throw new BadAnswerError("The AI returned cost numbers that were missing or out of range. Please try again.");
+  }
+  if (tuitionLowUsd > tuitionHighUsd || livingLowUsd > livingHighUsd) {
+    throw new BadAnswerError("The AI returned a cost range the wrong way round. Please try again.");
+  }
+  const strengths = strList(raw.strengths, 6, 300);
+  const gaps = (Array.isArray(raw.gaps) ? raw.gaps : [])
+    .filter(isObj)
+    .map((g) => ({ gap: str(g.gap, 300), fix: str(g.fix, 400) }))
+    .filter((g) => g.gap)
+    .slice(0, 6);
+  if (strengths.length === 0 && gaps.length === 0) {
+    throw new BadAnswerError("The AI returned an empty analysis. Please try again.");
+  }
+  return {
+    strengths,
+    gaps,
+    cost: { tuitionLowUsd, tuitionHighUsd, livingLowUsd, livingHighUsd, years, notes: str(cost.notes, 400) },
+  };
 }

@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { errorText, post } from "@/lib/api";
 import { describeProfileChanges, diffPrograms, sameUniversity } from "@/lib/checks";
+import { BUDGET_MAX, BUDGET_MIN, BUDGET_STEP, SCHOLARSHIP_MAX, SCHOLARSHIP_STEP } from "@/lib/options";
 import { durationOptions } from "@/lib/profileFields";
 import { useApp } from "@/lib/state";
 import type { Program, Risk, ScholarshipNeed, StudentProfile, WhatIfResponse } from "@/lib/types";
 import { btnPrimary, btnSecondary, cardClass, categoryStyle, inputClass } from "@/lib/ui";
+import RangeSlider from "./RangeSlider";
+
+const usd = (n: number) => `USD ${n.toLocaleString("en-US")}`;
 
 function Seg<T extends string>({
   label,
@@ -154,21 +158,39 @@ export default function WhatIfPanel() {
       </p>
 
       <div className="mt-4 space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-800">
-            Budget per year: {draft.budgetUsd != null ? `USD ${draft.budgetUsd.toLocaleString("en-US")}` : "not set"}
-          </label>
-          <input
-            type="range"
-            min={5000}
-            max={100000}
-            step={1000}
-            value={draft.budgetUsd ?? 30000}
-            onChange={(e) => update("budgetUsd", Number(e.target.value))}
-            className="w-full"
-            aria-label="What-if budget per year"
+        <RangeSlider
+          label="Budget per year"
+          min={BUDGET_MIN}
+          max={BUDGET_MAX}
+          step={BUDGET_STEP}
+          low={draft.budgetMinUsd}
+          high={draft.budgetUsd}
+          onChange={(lo, hi) => {
+            setDraft((d) => ({ ...d, budgetMinUsd: lo, budgetUsd: hi }));
+            setResult(null);
+          }}
+          format={usd}
+          lowLabel="Comfortable"
+          highLabel="Absolute maximum"
+        />
+
+        {draft.scholarshipNeed !== "none" && (
+          <RangeSlider
+            label="Scholarship you hope for, per year"
+            min={0}
+            max={SCHOLARSHIP_MAX}
+            step={SCHOLARSHIP_STEP}
+            low={draft.scholarshipMinUsd}
+            high={draft.scholarshipMaxUsd}
+            onChange={(lo, hi) => {
+              setDraft((d) => ({ ...d, scholarshipMinUsd: lo, scholarshipMaxUsd: hi }));
+              setResult(null);
+            }}
+            format={usd}
+            lowLabel="At least"
+            highLabel="Up to"
           />
-        </div>
+        )}
 
         <div className="flex flex-wrap gap-x-8 gap-y-4">
           <Seg<Risk>

@@ -3,26 +3,48 @@ import { FIELD_LABELS, displayValue, examLine } from "./profileFields";
 import type { ProfileField, Program, QA, StudentProfile } from "./types";
 
 // Student text is wrapped in tags and labelled as data, so pasted text can't act as instructions.
+// The student's name is never sent to the AI: it is only used on exports, in the browser.
 export function formatProfile(p: StudentProfile): string {
   const loan = p.loanWanted
     ? `Loan: wants a loan of ${displayValue(p, "loanAmountUsd")} repaid over ${displayValue(p, "loanYears")} (assumed interest ${p.loanRatePct}%)`
     : "Loan: none planned";
+  const budget =
+    p.budgetMinUsd != null && p.budgetUsd != null
+      ? `USD ${p.budgetMinUsd.toLocaleString("en-US")} to USD ${p.budgetUsd.toLocaleString("en-US")} per year (the upper end is the most the student can spend, including any loan)`
+      : `${displayValue(p, "budgetUsd")} (the most the student can spend, including any loan)`;
+  const scholarshipWanted =
+    p.scholarshipMinUsd != null && p.scholarshipMaxUsd != null
+      ? `USD ${p.scholarshipMinUsd.toLocaleString("en-US")} to USD ${p.scholarshipMaxUsd.toLocaleString("en-US")} per year`
+      : "Not given";
   const lines = [
-    `Degree level: ${displayValue(p, "degreeLevel")}`,
-    `Field of study: ${displayValue(p, "field")}`,
+    `Current education: ${displayValue(p, "currentLevel")}`,
+    `Previous field of study: ${displayValue(p, "priorField")}`,
+    `Graduation year: ${displayValue(p, "graduationYear")}`,
+    `Grades / GPA: ${displayValue(p, "grades")}`,
+    `Degree level wanted: ${displayValue(p, "degreeLevel")}`,
+    `Field of study wanted: ${displayValue(p, "field")}`,
+    `Interests: ${displayValue(p, "interests")}`,
+    `What matters most to the student (up to 3): ${displayValue(p, "priorities")}`,
     `Preferred duration: ${displayValue(p, "duration")}`,
+    `Study mode: ${displayValue(p, "studyMode")}`,
+    `Teaching language: ${displayValue(p, "teachingLanguage")}`,
+    `Thesis or coursework: ${displayValue(p, "thesisPreference")}`,
+    `Intake term: ${displayValue(p, "intake")}`,
     `Home country (nationality): ${displayValue(p, "homeCountry")}`,
     `Target countries: ${displayValue(p, "countries")}`,
-    `Budget per year (total the student can spend, including any loan): ${displayValue(p, "budgetUsd")}`,
+    `English test: ${examLine(p.englishStatus, p.englishTest, p.englishScore, p.englishPlanned)}`,
+    `Entrance exam: ${examLine(p.entranceStatus, p.entranceTest, p.entranceScore, p.entrancePlanned)}`,
+    `Budget per year: ${budget}`,
+    `Funding sources: ${displayValue(p, "fundingSources")}`,
     `Risk appetite: ${displayValue(p, "risk")}`,
     `Scholarship need: ${displayValue(p, "scholarshipNeed")}`,
-    `English test: ${examLine(p.englishStatus, p.englishTest, p.englishScore)}`,
-    `Entrance exam: ${examLine(p.entranceStatus, p.entranceTest, p.entranceScore)}`,
-    `Grades / GPA: ${displayValue(p, "grades")}`,
-    `Work / research experience: ${displayValue(p, "experience")}`,
-    `Projects and activities: ${displayValue(p, "activities")}`,
-    `Intake term: ${displayValue(p, "intake")}`,
+    `Scholarship the student hopes for: ${scholarshipWanted}`,
     loan,
+    `Work experience: ${displayValue(p, "workYears")}`,
+    `Work / research experience details: ${displayValue(p, "experience")}`,
+    `Research or publications: ${displayValue(p, "hasResearch")}`,
+    `Projects and activities: ${displayValue(p, "activities")}`,
+    `Career goal: ${displayValue(p, "careerGoal")}`,
     `About the student, in their own words: ${displayValue(p, "about")}`,
   ];
   return `<student_profile>\n${lines.join("\n")}\n</student_profile>`;
@@ -49,6 +71,7 @@ function todayRule(): string {
 const PROGRAM_RULES = `- Only suggest real universities and standard programs you are confident exist. If unsure of an exact program title, use the closest standard title.
 - Respect the student's target countries, budget (which already includes any loan) and preferred duration. If they gave none, say so in "assumptions".
 - Risk appetite steers the mix. Low risk: at most 1 Reach, mostly Safe and Match. Balanced: at least one Reach, one Match and one Safe. High risk: at least 2 Reach.
+- "What matters most" tells you what to weigh when choosing and ranking programs (for example low cost, scholarships, reputation, job prospects, research, location). Honour the teaching language, study mode, and thesis or coursework preference when they are given.
 - Scholarship need: if "Essential", favour programs and countries with low tuition or a real funding track record and say so in whyItFits. If "Not needed", ignore scholarships.
 - category must be honest for THIS student's profile. Reach: the student looks weaker than the typical admitted student. Match: about equal. Safe: clearly stronger than the typical admitted student. Never label a globally well-known, highly selective university as Safe.
 - whyItFits and mainRisk must refer to specifics from the student's profile. mainRisk is the single biggest honest obstacle for this student at this program.
@@ -111,12 +134,23 @@ Return the updated shortlist now.`;
 
 const PROFILE_FIELD_LIST = (Object.keys(FIELD_LABELS) as ProfileField[]).join(", ");
 
+const PAGE_GUIDE: Record<string, string> = {
+  intake: "the guided questions that build their profile",
+  profile: "their profile, profile strength score, loan estimate and the What-if panel for trying changes",
+  programs: "their shortlist, where each program can be opened for strengths, gaps and a cost breakdown, and 3 or 4 can be selected and compared",
+  applications: "the application drafts, one per selected program, to read, compare and choose from",
+  funding: "scholarship and funding options per program, with sliders for the yearly amount they hope for",
+  plan: "their checklist and timeline with dates they confirm, draft downloads (PDF and Word), a calendar file, and a share link",
+  alumni: "typical paths of past students, written by AI as examples, not real people",
+};
+
 export function chatSystem(page: string): string {
-  return `You are the student's friendly, honest study-abroad advisor inside the Study Abroad Co-Pilot app. The student is currently on the "${page}" page. Press reply with your answer.
+  const where = PAGE_GUIDE[page] ? ` This page is for: ${PAGE_GUIDE[page]}.` : "";
+  return `You are the student's friendly, honest study-abroad advisor inside the Study Abroad Co-Pilot app. The student is currently on the "${page}" page.${where} Press reply with your answer.
 
 - Answer in plain language, in under 120 words unless they ask for more detail. Use the profile and shortlist you are given. If you do not know something, say so.
 - When the student STATES a new fact about themselves as true (budget, scores, countries, grades, goals, loan, risk or scholarship need), add it to "proposals": the exact profile field, the new value as text, and a short reason. The field must be one of: ${PROFILE_FIELD_LIST}.
-- Value formats: budgetUsd, loanAmountUsd and loanYears and loanRatePct are plain numbers (USD for money). risk is low, balanced or high. scholarshipNeed is essential, helpful or none. englishStatus and entranceStatus are taken, planned or none. loanWanted is yes or no. Everything else is plain text.
+- Value formats: budgetUsd, loanAmountUsd and loanYears and loanRatePct are plain numbers (USD for money). risk is low, balanced or high. scholarshipNeed is essential, helpful or none. englishStatus and entranceStatus are taken, planned or none. loanWanted is yes or no. currentLevel is one of highschool, bachelor_in_progress, bachelor_done, master, working. gradeScale is one of cgpa10, gpa4, percent, uk, other. studyMode is full or part. teachingLanguage is english or any. thesisPreference is thesis, coursework or either. workYears is 0, 1-2, 3-5 or 5+. hasResearch is yes or no. interests, priorities and fundingSources are comma-separated lists. budgetMinUsd, scholarshipMinUsd and scholarshipMaxUsd are plain numbers in USD per year. englishPlanned and entrancePlanned are YYYY-MM. Everything else is plain text.
 - Do not propose changes for hypotheticals ("what if...", "should I...") or general questions. Instead tell them they can try it in the What-if panel on the Profile page.
 - You never change anything yourself. The student must press Apply on a proposal. So word proposals as suggestions, for example "I suggest updating your budget to USD 50,000 — press Apply to confirm". Never say "I've updated", "I've changed" or "done".
 - Do not write whole applications here. Point them to the Applications page.
@@ -152,7 +186,8 @@ export function scholarshipsSystem(): string {
   return `You are an honest study-abroad funding advisor. For ONE program, list well-known scholarships and funding options the student could look into. Press submit_scholarships.
 
 - List 3 to 5 funding options: university scholarships, government or country schemes, and external funders. Only list ones you are confident really exist. If you know fewer, list fewer. Never invent a scholarship name.
-- typicalValue and eligibility must be described in words as typical (for example "often covers part of tuition and a living stipend"), never as exact or guaranteed. Do NOT quote any specific amount, currency figure, number of years or percentage, because they change often. Do not give deadlines or web addresses.
+- typicalValue and eligibility must be described in words as typical (for example "often covers part of tuition and a living stipend"), never as exact or guaranteed. Do not give deadlines or web addresses.
+- amountLowUsd and amountHighUsd are an optional rough range of the typical value in USD per year, rounded to the nearest 500, for example 3000 and 9000. Give BOTH or neither. Leave both out when you do not know. Never give a single exact figure, and never invent one. They are estimates and the student will be told to verify them.
 - match is about ELIGIBILITY only, not the chance of winning (most scholarships are competitive): likely, maybe or unlikely eligible, compared with THIS student. The student's home country matters for many schemes. If it is not given, say so in matchReason and do not assume one.
 - note: one sentence telling the student to confirm every detail on the official scholarship page.
 
@@ -171,6 +206,56 @@ export function alumniSystem(): string {
 ${HONESTY_RULE}
 ${todayRule()}
 ${DATA_RULE}`;
+}
+
+export function insightSystem(): string {
+  return `You are an honest study-abroad advisor. For ONE program and ONE student, press submit_insight.
+
+- strengths: 2 to 4 specific things in THIS student's profile that help for this program. Use only facts the student gave.
+- gaps: 2 to 4 specific weaknesses or missing items for this program, each with one concrete fix the student can act on.
+- cost: a rough yearly cost estimate in USD, always as RANGES. tuitionLowUsd and tuitionHighUsd are tuition and fees per year for an international student. livingLowUsd and livingHighUsd are living costs per year in that city. years is the program length in years (for example 1.5 or 2). Round money to the nearest 500. If the program has no tuition, use 0 up to a small administrative fee. notes is one sentence on what the estimate assumes. These are estimates from general knowledge, not quotes.
+- Phrase requirements as typical and still to be confirmed. Never say the student meets or exceeds a requirement as if it were confirmed.
+
+${HONESTY_RULE}
+${todayRule()}
+${DATA_RULE}`;
+}
+
+export function factsSearchPrompt(profile: StudentProfile, program: Program): string {
+  return `Research this study program using official university pages and other official sources.
+
+Program: ${program.program} at ${program.university} (${program.country}).
+Intake the student is aiming for: ${profile.intake || "not given"}.
+Student's home country: ${profile.homeCountry || "not given"}.
+
+Find, with the source for each: (1) tuition and fees for an international student, (2) typical living costs in that city, (3) program length, (4) application deadlines for that intake, (5) English language requirement, (6) whether an entrance test such as GRE or GMAT is required, (7) the application fee.
+Copy figures exactly as the source states them, with currency. If you cannot find something, say so plainly instead of estimating.
+${todayRule()}`;
+}
+
+export function factsExtractSystem(): string {
+  return `You turn a researched answer into a list of facts. Press submit_facts.
+
+- Each fact has a label (one of: Tuition, Living cost, Program length, Application deadline, English requirement, Entrance test, Application fee), a value, and sourceIds.
+- Copy numbers and currency exactly as written in the researched text. Never convert, round or invent a figure.
+- sourceIds are the numbers, from the source list you are given, of the sources that support that fact. Only include a fact if the text states it AND at least one listed source supports it.
+- List in notFound the labels the text did not state.
+${DATA_RULE}`;
+}
+
+export function factsExtractUser(program: Program, text: string, sources: { index: number; title: string; uri: string }[]): string {
+  const list = sources.map((s) => `[${s.index}] ${s.title || s.uri}`).join("\n");
+  return `<program>${program.program} at ${program.university}</program>
+
+<sources>
+${list}
+</sources>
+
+<researched_text>
+${text}
+</researched_text>
+
+Extract the facts now.`;
 }
 
 export function programUser(profile: StudentProfile, program: Program): string {
@@ -318,6 +403,8 @@ export const submitScholarshipsTool: ToolDef = {
             name: { type: "string" },
             provider: { type: "string" },
             typicalValue: { type: "string" },
+            amountLowUsd: { type: "number" },
+            amountHighUsd: { type: "number" },
             eligibility: { type: "string" },
             match: { type: "string", enum: ["likely", "maybe", "unlikely"] },
             matchReason: { type: "string" },
@@ -328,6 +415,62 @@ export const submitScholarshipsTool: ToolDef = {
       note: { type: "string" },
     },
     required: ["scholarships", "note"],
+  },
+};
+
+export const submitInsightTool: ToolDef = {
+  name: "submit_insight",
+  description: "Submit strengths, gaps and a rough cost range for the program.",
+  parameters: {
+    type: "object",
+    properties: {
+      strengths: { type: "array", items: { type: "string" } },
+      gaps: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { gap: { type: "string" }, fix: { type: "string" } },
+          required: ["gap", "fix"],
+        },
+      },
+      cost: {
+        type: "object",
+        properties: {
+          tuitionLowUsd: { type: "number" },
+          tuitionHighUsd: { type: "number" },
+          livingLowUsd: { type: "number" },
+          livingHighUsd: { type: "number" },
+          years: { type: "number" },
+          notes: { type: "string" },
+        },
+        required: ["tuitionLowUsd", "tuitionHighUsd", "livingLowUsd", "livingHighUsd", "years", "notes"],
+      },
+    },
+    required: ["strengths", "gaps", "cost"],
+  },
+};
+
+export const submitFactsTool: ToolDef = {
+  name: "submit_facts",
+  description: "Submit the sourced facts and the labels that were not found.",
+  parameters: {
+    type: "object",
+    properties: {
+      facts: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            label: { type: "string" },
+            value: { type: "string" },
+            sourceIds: { type: "array", items: { type: "number" } },
+          },
+          required: ["label", "value", "sourceIds"],
+        },
+      },
+      notFound: { type: "array", items: { type: "string" } },
+    },
+    required: ["facts", "notFound"],
   },
 };
 
