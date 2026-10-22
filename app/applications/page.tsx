@@ -5,9 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Burst from "@/components/Burst";
 import Stamp from "@/components/Stamp";
 import ApplicationCompare from "@/components/ApplicationCompare";
-import ApplicationView from "@/components/ApplicationView";
 import { errorText, post } from "@/lib/api";
-import { collectStudentText, unverifiedNumbers, unverifiedPhrases } from "@/lib/checks";
+import { collectStudentText, unverifiedNumbers } from "@/lib/checks";
 import { useApp } from "@/lib/state";
 import type { ApplicationPackage, Program, QA, StudentProfile } from "@/lib/types";
 import { useRequireShortlist } from "@/lib/useGuard";
@@ -101,7 +100,7 @@ export default function ApplicationsPage() {
         answers={state.answers}
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className={`grid gap-5 ${programs.length === 1 ? "" : "md:grid-cols-2 xl:grid-cols-3"}`}>
         {programs.map((p) => {
           const draft = state.drafts[p.id];
           const chosen = state.chosenId === p.id;
@@ -153,30 +152,17 @@ export default function ApplicationsPage() {
 
               {draft?.status === "done" && draft.application && (
                 <div className="mt-4 space-y-3">
-                  <details open={programs.length === 1} className="rounded-lg border border-line p-3">
-                    <summary className="cursor-pointer text-sm font-medium text-jet-deep">
-                      Read the full draft
-                    </summary>
-                    <div className="mt-4">
-                      <ApplicationView
-                        program={p}
-                        application={draft.application}
-                        showHeader={false}
-                        flagged={unverifiedNumbers(
-                          draft.application.sop,
-                          collectStudentText(state.profile, state.answers, p)
-                        )}
-                        flaggedPhrases={unverifiedPhrases(
-                          draft.application.sop,
-                          collectStudentText(state.profile, state.answers, p)
-                        )}
-                      />
-                    </div>
-                  </details>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Link href={`/draft?id=${p.id}`} className={btnSecondary + " w-full"}>
-                      Open full screen
-                    </Link>
+                  <div className="rounded-[10px] border border-line bg-black/20 p-4">
+                    <p className="line-clamp-4 text-[15px] leading-relaxed text-tarmac">{draft.application.sop}</p>
+                    <p className="num mt-2 text-[12px] text-tarmac">
+                      {draft.application.sop.split(/\s+/).filter(Boolean).length} words ·{" "}
+                      {unverifiedNumbers(draft.application.sop, collectStudentText(state.profile, state.answers, p)).size} numbers to check
+                    </p>
+                  </div>
+                  <Link href={`/draft?id=${p.id}`} className={btnPrimary + " w-full"}>
+                    Read the full draft, full screen
+                  </Link>
+                  <div className="grid gap-2">
                     <Link href={`/draft?id=${p.id}&mode=write`} className={btnSecondary + " w-full"}>
                       {Object.values(state.ownDrafts[p.id]?.sections ?? {}).some(Boolean) ? "Continue my own draft" : "Write it myself"}
                     </Link>

@@ -148,7 +148,7 @@ function ReadMode({
   onWrite: () => void;
 }) {
   return (
-    <main className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 py-8 lg:grid-cols-[1fr_22rem] lg:px-8">
+    <main className="mx-auto grid w-full max-w-[90rem] flex-1 gap-8 px-4 py-8 lg:grid-cols-[1fr_24rem] lg:px-10">
       <article>
         <p className="text-sm text-tarmac">
           <mark className="rounded bg-yellow-200 px-1 text-black">Yellow</mark> is a blank for you to fill. <mark className="rounded bg-orange-300 px-1 text-black">Orange</mark> is a
