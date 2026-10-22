@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { dual, dualRange } from "@/lib/money";
 import { displayValue, examLine } from "@/lib/profileFields";
 import type { StudentProfile } from "@/lib/types";
 
@@ -9,9 +10,9 @@ type Group = { title: string; step: number; rows: Row[] };
 
 const range = (lo: number | null, hi: number | null, suffix: string) =>
   lo != null && hi != null
-    ? `USD ${lo.toLocaleString("en-US")} to USD ${hi.toLocaleString("en-US")} ${suffix}`
+    ? `${dualRange(lo, hi)} ${suffix}`
     : hi != null
-      ? `Up to USD ${hi.toLocaleString("en-US")} ${suffix}`
+      ? `Up to ${dual(hi)} ${suffix}`
       : "Not given";
 
 const GROUPS: Group[] = [

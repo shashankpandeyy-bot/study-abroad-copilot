@@ -1,16 +1,18 @@
 "use client";
 
+import RiskRange from "@/components/RiskRange";
+import { dual } from "@/lib/money";
 import { useState } from "react";
 import { errorText, post } from "@/lib/api";
 import { describeProfileChanges, diffPrograms, sameUniversity } from "@/lib/checks";
 import { BUDGET_MAX, BUDGET_MIN, BUDGET_STEP, SCHOLARSHIP_MAX, SCHOLARSHIP_STEP } from "@/lib/options";
 import { durationOptions } from "@/lib/profileFields";
 import { useApp } from "@/lib/state";
-import type { Program, Risk, ScholarshipNeed, StudentProfile, WhatIfResponse } from "@/lib/types";
+import type { Program, ScholarshipNeed, StudentProfile, WhatIfResponse } from "@/lib/types";
 import { btnPrimary, btnSecondary, cardClass, categoryStyle, inputClass } from "@/lib/ui";
 import RangeSlider from "./RangeSlider";
 
-const usd = (n: number) => `USD ${n.toLocaleString("en-US")}`;
+const usd = (n: number) => dual(n);
 
 function Seg<T extends string>({
   label,
@@ -193,16 +195,17 @@ export default function WhatIfPanel() {
         )}
 
         <div className="flex flex-wrap gap-x-8 gap-y-4">
-          <Seg<Risk>
-            label="Risk appetite"
-            value={draft.risk}
-            onChange={(v) => update("risk", v)}
-            options={[
-              { value: "low", title: "Low" },
-              { value: "balanced", title: "Balanced" },
-              { value: "high", title: "High" },
-            ]}
-          />
+          <div className="w-full max-w-xl">
+            <RiskRange
+              label="Risk range"
+              min={draft.riskMin}
+              max={draft.riskMax}
+              onChange={(r) => {
+                setDraft((d) => ({ ...d, ...r }));
+                setResult(null);
+              }}
+            />
+          </div>
           <Seg<ScholarshipNeed>
             label="Scholarship need"
             value={draft.scholarshipNeed}

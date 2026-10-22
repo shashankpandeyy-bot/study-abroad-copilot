@@ -1,5 +1,6 @@
 "use client";
 
+import { dual } from "@/lib/money";
 import { useMemo, useState } from "react";
 import { scoreRange, validateScore } from "@/lib/exams";
 import { formatGrades, validateGrade } from "@/lib/grades";
@@ -29,11 +30,13 @@ import {
   THESIS_PREFERENCES,
   UK_CLASSES,
   WORK_YEARS,
-  upcomingIntakes,
+  upcomingIntakeOptions,
 } from "@/lib/options";
 import { EMPTY_PROFILE, STRONG_SAMPLE, THIN_SAMPLE } from "@/lib/sampleProfiles";
 import { btnPrimary, btnSecondary, inputClass } from "@/lib/ui";
-import type { ExamStatus, Risk, ScholarshipNeed, StudentProfile } from "@/lib/types";
+import type { ExamStatus, ScholarshipNeed, StudentProfile } from "@/lib/types";
+import IntakeCalendar from "@/components/IntakeCalendar";
+import RiskRange from "@/components/RiskRange";
 import ChipGroup from "./ChipGroup";
 import RangeSlider from "./RangeSlider";
 
@@ -214,7 +217,7 @@ const split = (s: string) =>
     .map((x) => x.trim())
     .filter(Boolean);
 
-const usd = (n: number) => `USD ${n.toLocaleString("en-US")}`;
+const usd = (n: number) => dual(n);
 
 export default function IntakeWizard({
   profile,
@@ -237,7 +240,7 @@ export default function IntakeWizard({
 }) {
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), STEPS.length - 1));
   const [formError, setFormError] = useState("");
-  const intakes = useMemo(() => upcomingIntakes(new Date()), []);
+  const intakes = useMemo(() => upcomingIntakeOptions(new Date()), []);
   const years = useMemo(() => {
     const now = new Date().getFullYear();
     return Array.from({ length: 15 }, (_, i) => String(now + 6 - i));
@@ -467,14 +470,7 @@ export default function IntakeWizard({
             <EnumChips label="Teaching language" options={TEACHING_LANGUAGES} value={profile.teachingLanguage} onChange={(v) => set("teachingLanguage", v as StudentProfile["teachingLanguage"])} />
             <EnumChips label="Thesis or coursework" options={THESIS_PREFERENCES} value={profile.thesisPreference} onChange={(v) => set("thesisPreference", v as StudentProfile["thesisPreference"])} />
           </div>
-          <ChipGroup
-            label="When do you want to start?"
-            hint="Leave empty if you are not sure. Picking a term unlocks your timeline."
-            single
-            options={intakes}
-            value={profile.intake ? [profile.intake] : []}
-            onChange={(v) => set("intake", v[0] ?? "")}
-          />
+          <IntakeCalendar options={intakes} value={profile.intake} onChange={(v) => set("intake", v)} />
         </div>
       )}
 
@@ -540,15 +536,10 @@ export default function IntakeWizard({
             value={profile.fundingSources}
             onChange={(v) => onChange({ ...profile, fundingSources: v, loanWanted: v.includes("Education loan") })}
           />
-          <Choice<Risk>
-            label="How much risk are you comfortable with?"
-            value={profile.risk}
-            onChange={(v) => set("risk", v)}
-            options={[
-              { value: "low", title: "Low risk", hint: "Mostly safer admits" },
-              { value: "balanced", title: "Balanced", hint: "A mix of safe and ambitious" },
-              { value: "high", title: "High risk", hint: "Ambitious reaches welcome" },
-            ]}
+          <RiskRange
+            min={profile.riskMin}
+            max={profile.riskMax}
+            onChange={(r) => onChange({ ...profile, ...r })}
           />
           <Choice<ScholarshipNeed>
             label="Do you need a scholarship?"

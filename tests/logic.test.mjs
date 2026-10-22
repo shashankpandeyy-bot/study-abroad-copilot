@@ -15,7 +15,7 @@ assert.equal(parseProfile({ ...STRONG_SAMPLE, budgetUsd: "USD 50,000" }).budgetU
 assert.equal(parseProfile({ ...STRONG_SAMPLE, budgetUsd: "50k" }).budgetUsd, 50000);
 assert.equal(parseProfile({ ...STRONG_SAMPLE, budgetUsd: 99999999 }).budgetUsd, null, "absurd budget dropped");
 assert.equal(parseProfile({ ...STRONG_SAMPLE, budgetUsd: -5 }).budgetUsd, null);
-assert.equal(parseProfile({ ...STRONG_SAMPLE, risk: "extreme" }).risk, "balanced", "bad enum falls back to default");
+assert.equal(parseProfile({ ...STRONG_SAMPLE, risk: "extreme", riskMin: "x", riskMax: "y" }).risk, "balanced", "bad enum falls back to default");
 assert.equal(parseProfile({ ...STRONG_SAMPLE, scholarshipNeed: "??" }).scholarshipNeed, "helpful");
 const noLoan = parseProfile({ ...STRONG_SAMPLE, loanWanted: false });
 assert.equal(noLoan.loanAmountUsd, null); assert.equal(noLoan.loanYears, null, "loan fields cleared when no loan");
@@ -86,7 +86,7 @@ const same = diffPrograms(cur, cur);
 assert.equal(same.added.length + same.dropped.length, 0, "identical lists show no change");
 
 // ---------- profile change description ----------
-const ch = describeProfileChanges(STRONG_SAMPLE, { ...STRONG_SAMPLE, budgetUsd: 60000, risk: "high" });
+const ch = describeProfileChanges(STRONG_SAMPLE, { ...STRONG_SAMPLE, budgetUsd: 60000, riskMin: "high", riskMax: "high", risk: "high" });
 assert.deepEqual(ch.map((c) => c.field).sort(), ["budgetUsd", "risk"]);
 assert.match(ch.find((c) => c.field === "budgetUsd").to, /60,000/);
 assert.equal(describeProfileChanges(STRONG_SAMPLE, { ...STRONG_SAMPLE }).length, 0, "no change, no entries");

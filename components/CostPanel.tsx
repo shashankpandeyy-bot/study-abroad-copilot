@@ -1,6 +1,7 @@
 "use client";
 
-import { loanOnGap, summarizeCost, usdRange } from "@/lib/cost";
+import { loanOnGap, summarizeCost } from "@/lib/cost";
+import { dualRange as usdRange } from "@/lib/money";
 import type { CostEstimate, StudentProfile } from "@/lib/types";
 
 const FIT_TEXT = {

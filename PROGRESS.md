@@ -14,7 +14,7 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 4 on a phone | Every page measured at 375 px wide: no sideways scrolling. Not tested on a real phone |
 | Google Search grounding with source links | Code and unit tests only. **Not run for real**: Google refused the search tool on the free key. Off by default, with "verify links" as the fallback |
 | Loan and debt calculator | Built, tested against published loan-table values |
-| Plain-code tests (`npm test`) | 8 test files, all passing, no key needed |
+| Plain-code tests (`npm test`) | 9 test files, all passing, no key needed |
 | `tsc`, lint | Clean |
 | Deployed prototype | Version 3 is live. **Version 4 is not deployed yet**, and the live site has no AI key set until the owner adds `GEMINI_API_KEY` in Vercel |
 
@@ -71,6 +71,18 @@ What was built, what broke along the way, and how it was fixed. Everything below
     - Two open tabs share one saved copy, and a fresh tab with nothing saved overwrote it. This is a limit of having no accounts, now listed in the README.
     - Grounding could not be tested: Google refused the search tool on the free key (error 429). Built the "verify links" fallback and left grounding off rather than claim something unverified.
 
+11. **Version 5: OVEREASE.** Renamed, redesigned and extended after the live link was submitted.
+    - Risk became a range (two handles, presets, shortlist rules for a spread). Old single-risk data converts on load, and the what-if only allows drops when the top of the range comes down.
+    - Every price shows in USD and INR, with the sample rate stated.
+    - The chat became the OVEREASE voice guide with 11 languages.
+    - A sidebar journey with ranks, a trip strip, a phone tab bar, and a rebuilt landing, profile, programs, applications and plan.
+12. **Bugs found while building version 5, and fixed.**
+    - Making risk a range broke three existing tests. The old tests only changed the single `risk` field while the range still applied, so I updated them to change the whole range, and added tests for the new rules.
+    - Describing a risk change produced three lines for one change. It now reads as one line.
+    - A Hindi sentence about a risk range came back as a single "high" instead of a range. The prompt now says when to use the range fields, and the same sentence then produced a correct lowest and highest pair.
+    - shadcn added an unvetted package called `cn`. I replaced it with `clsx` and `tailwind-merge`.
+    - On phones the OVEREASE button covered the "Get my application drafts" button. It now floats above the action bar.
+
 ## Measured results (manual runs, live API)
 
 | Check | Result |
@@ -90,8 +102,16 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 4, share link with a chosen draft | 6,266 characters. Opened with no saved data, read-only, name left out. A damaged copy showed the "could not be opened" page |
 | Version 4, exports | Calendar file valid (one confirmed date, one event). Word file is a real .docx with 1 yellow highlight, matching the 1 blank in that draft |
 | `scripts/verify-deploy.sh` against the local server | 14 of 14 checks passed |
+| OVEREASE, typed question in Hindi and Tamil | Both answered in the right script. A made-up language name safely fell back to English |
+| OVEREASE, a Hindi sentence stating a budget | Proposed `budgetUsd` 50000 as a number. Applying is still the student's choice |
+| OVEREASE, a Hindi sentence naming a risk range | Proposed lowest `balanced` and highest `high` after the prompt fix |
+| Version 5, 390 px wide | No sideways scrolling on the ten pages measured |
 
 ## What is not proven yet
+
+- **Speech.** The microphone and spoken replies were not tested with real speech. Only typed questions were tested.
+- **Lighthouse above 90** has not been measured.
+- **The new design on a real phone**, and with a screen reader, has not been checked.
 
 - **Grounding with source links** has not run against the real service (see above). Nothing in the app claims a figure was checked.
 - **Version 4 is not deployed**, and the live site cannot make AI calls until `GEMINI_API_KEY` is added in Vercel. After that, `scripts/verify-deploy.sh <live address>` is the test.

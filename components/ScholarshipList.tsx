@@ -1,6 +1,6 @@
 "use client";
 
-import { usdRange } from "@/lib/cost";
+import { dualRange as usdRange } from "@/lib/money";
 import type { Scholarship } from "@/lib/types";
 import { scholarshipLink } from "@/lib/verify";
 import { btnPrimary, btnSmall } from "@/lib/ui";

@@ -20,7 +20,7 @@ if echo "$health" | grep -q '"ai":"configured"'; then pass "AI key is configured
 echo "      grounding: $(echo "$health" | sed -n 's/.*"grounding":"\([a-z]*\)".*/\1/p')"
 
 # 2. Every page loads.
-for path in / /profile /programs /applications /funding /plan /plan/shared /alumni; do
+for path in / /fly /fly/budget /profile /programs /applications /funding /plan /plan/shared /alumni; do
   code="$(status "$BASE$path")"
   # Pages that need saved data still return 200; they redirect inside the browser.
   if [ "$code" = "200" ]; then pass "GET $path"; else bad "GET $path returned $code"; fi
@@ -37,6 +37,12 @@ if [ "$code" = "404" ]; then pass "unknown page returns 404"; else bad "unknown 
 # 5. Bad input is refused politely (no AI call is made).
 code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -X POST -H "Content-Type: application/json" -d '{"profile":"nope"}' "$BASE/api/shortlist")"
 if [ "$code" = "400" ]; then pass "bad request is refused with 400"; else bad "bad request returned $code (expected 400)"; fi
+
+# 5b. The voice guide answers in another language (typed text, no microphone needed).
+if [ "${SKIP_AI:-0}" != "1" ]; then
+  hi="$(curl -s --max-time 60 -X POST -H "Content-Type: application/json" -d '{"profile":{"degreeLevel":"Master'"'"'s","countries":"Germany"},"page":"plan","language":"Hindi","messages":[{"role":"user","text":"What is a statement of purpose?"}],"programs":[]}' "$BASE/api/chat")"
+  if echo "$hi" | grep -q '[ऀ-ॿ]'; then pass "OVEREASE replies in Hindi script"; else bad "OVEREASE Hindi reply was not in Devanagari: $(echo "$hi" | head -c 160)"; fi
+fi
 
 # 6. One real AI call, to prove the key works from this deployment.
 if [ "${SKIP_AI:-0}" = "1" ]; then

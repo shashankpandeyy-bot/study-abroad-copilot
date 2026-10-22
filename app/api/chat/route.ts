@@ -1,3 +1,4 @@
+import { languageNameOrEnglish } from "@/lib/languages";
 import { callTool, errorResponse, withRetry } from "@/lib/ai";
 import { chatSystem, chatUser, replyTool } from "@/lib/prompts";
 import {
@@ -19,10 +20,11 @@ export async function POST(request: Request) {
       Array.isArray(body.programs) && body.programs.length > 0 ? parseProgramList(body.programs, 8) : [];
     const messages = parseChatMessages(body.messages);
     const page = parsePage(body.page);
+    const language = languageNameOrEnglish(body.language);
 
     const result = await withRetry(async () => {
       const reply = await callTool({
-        system: chatSystem(page),
+        system: chatSystem(page, language),
         user: chatUser(profile, programs, messages),
         tools: [replyTool],
         forceTool: replyTool.name,

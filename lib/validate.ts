@@ -267,6 +267,8 @@ const nonEmpty = (list: readonly { value: string }[]) => list.map((x) => x.value
 
 const ENUMS: Partial<Record<ProfileField, readonly string[]>> = {
   risk: RISKS,
+  riskMin: RISKS,
+  riskMax: RISKS,
   scholarshipNeed: NEEDS,
   englishStatus: ["taken", "planned", "none"],
   entranceStatus: ["taken", "planned", "none"],

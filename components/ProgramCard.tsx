@@ -2,7 +2,11 @@
 
 import type { InsightsApi } from "@/lib/useInsights";
 import type { FactsResult, Program, StudentProfile } from "@/lib/types";
+import { DESTINATIONS } from "@/lib/countries";
+import { dualRange } from "@/lib/money";
 import { btnSecondary, categoryStyle } from "@/lib/ui";
+import CityArt from "./CityArt";
+import Flag from "./Flag";
 import CostPanel from "./CostPanel";
 import FitPanel from "./FitPanel";
 import SourcesPanel from "./SourcesPanel";
@@ -35,39 +39,56 @@ export default function ProgramCard({
   const insight = insights.insights[program.id];
   const busy = Boolean(insights.busy[program.id]);
   const error = insights.errors[program.id];
+  const dest = DESTINATIONS.find((d) => d.name === program.country);
+  const seed = [...program.university].reduce((a, c) => a + c.charCodeAt(0), 0);
 
   return (
     <article
-      className={`rounded-xl border bg-white p-5 transition ${
-        selected ? "border-jet ring-2 ring-main/30" : "border-line"
+      className={`overflow-hidden rounded-[10px] border bg-surface transition ${
+        selected ? "border-main ring-2 ring-main/30" : "border-line"
       }`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-ink">{program.university}</h3>
-          <p className="text-sm text-ink">
+      <div className="relative">
+        <CityArt code={dest?.code ?? "XX"} seed={seed} className="h-32 sm:h-36" />
+        <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${categoryStyle[program.category]}`}>
+          {program.category}
+        </span>
+        <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-surface/95 px-2.5 py-1 text-xs font-medium text-ink">
+          {dest && <Flag code={dest.code} className="w-4" />}
+          {dest?.city ?? program.country}
+        </span>
+      </div>
+
+      <div className="p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-[17px] font-semibold leading-snug text-ink">{program.university}</h3>
+          <p className="text-sm text-tarmac">
             {program.program} · {program.country}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${categoryStyle[program.category]}`}>
-            {program.category}
-          </span>
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-pressed={selected}
-            disabled={blocked && !selected}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
-              selected
-                ? "border-jet bg-jet text-white"
-                : "border-line text-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50"
-            }`}
-          >
-            {selected ? "Selected" : "Select"}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-pressed={selected}
+          disabled={blocked && !selected}
+          className={`min-h-11 shrink-0 rounded-[10px] border px-4 text-sm font-medium ${
+            selected
+              ? "border-main bg-main text-white"
+              : "border-ink/25 text-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50"
+          }`}
+        >
+          {selected ? "Selected" : "Select"}
+        </button>
       </div>
+
+      {dest && (
+        <p className="mt-3 text-sm text-ink">
+          <span className="font-semibold">{insight ? "" : "About "}</span>
+          <span className="num text-[13px]">{insight ? "" : dualRange(dest.typicalUsd[0], dest.typicalUsd[1])}</span>
+          <span className="text-tarmac">{insight ? "" : " a year in " + dest.name + ". Rough range; analyse this program for its own."}</span>
+        </p>
+      )}
 
       <p className="mt-3 text-sm text-ink">
         <span className="font-medium">Why it fits: </span>
@@ -117,6 +138,7 @@ export default function ProgramCard({
           />
         </div>
       </details>
+      </div>
     </article>
   );
 }

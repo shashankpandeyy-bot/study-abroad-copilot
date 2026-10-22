@@ -46,6 +46,8 @@ export type StudentProfile = {
   budgetUsd: number | null;
   fundingSources: string[];
   risk: Risk;
+  riskMin: Risk;
+  riskMax: Risk;
   scholarshipNeed: ScholarshipNeed;
   scholarshipMinUsd: number | null;
   scholarshipMaxUsd: number | null;

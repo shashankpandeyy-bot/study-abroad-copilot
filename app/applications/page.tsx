@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Burst from "@/components/Burst";
+import Stamp from "@/components/Stamp";
 import ApplicationCompare from "@/components/ApplicationCompare";
 import ApplicationView from "@/components/ApplicationView";
 import { errorText, post } from "@/lib/api";
@@ -16,6 +18,7 @@ export default function ApplicationsPage() {
   const ready = useRequireShortlist();
   const { set } = useApp();
   const inFlight = useRef<Set<string>>(new Set());
+  const [burst, setBurst] = useState(0);
 
   const runDraft = useCallback(
     async (program: Program, profile: StudentProfile, answers: QA[]) => {
@@ -70,12 +73,24 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
+    <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-8 lg:px-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Compare your application drafts</h1>
-        <p className="mt-1 text-sm text-tarmac">
+        <h1 className="text-[2rem] font-semibold leading-tight text-ink">Compare your application drafts</h1>
+        <p className="mt-1 max-w-[60ch] text-tarmac">
           One personalised draft per program. Read them, compare, and choose the one you want to take forward.
         </p>
+        <ol className="mt-5 grid gap-2 sm:grid-cols-3" aria-label="Progress">
+          {[
+            ["Drafts written", programs.every((p) => state.drafts[p.id]?.status === "done")],
+            ["Compared side by side", programs.some((p) => state.drafts[p.id]?.status === "done")],
+            ["One draft chosen", Boolean(state.chosenId)],
+          ].map(([label, ok], i) => (
+            <li key={String(label)} className={`flex items-center gap-3 rounded-[10px] border p-3 ${ok ? "border-main/40 bg-main-tint" : "border-line bg-surface"}`}>
+              <span className={`num grid h-7 w-7 place-items-center rounded-full text-[12px] ${ok ? "bg-main text-white" : "border border-ink/25 text-tarmac"}`}>{ok ? "✓" : i + 1}</span>
+              <span className={`text-sm ${ok ? "font-medium text-main-ink" : "text-tarmac"}`}>{String(label)}</span>
+            </li>
+          ))}
+        </ol>
       </header>
 
       <ApplicationCompare
@@ -86,17 +101,22 @@ export default function ApplicationsPage() {
         answers={state.answers}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {programs.map((p) => {
           const draft = state.drafts[p.id];
           const chosen = state.chosenId === p.id;
           return (
             <section
               key={p.id}
-              className={`rounded-xl border bg-white p-5 ${
+              className={`relative rounded-xl border bg-white p-5 ${
                 chosen ? "border-jet ring-2 ring-main/30" : "border-line"
               }`}
             >
+              {chosen && (
+                <div className="pointer-events-none absolute -right-2 -top-4 z-10">
+                  <Stamp title="CHOSEN" sub="YOUR PICK" earned tilt={9} tone="stamp" />
+                </div>
+              )}
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <h2 className="font-semibold text-ink">{p.university}</h2>
@@ -157,7 +177,10 @@ export default function ApplicationsPage() {
                     <button
                       type="button"
                       className={chosen ? btnSecondary : btnPrimary}
-                      onClick={() => set({ chosenId: chosen ? null : p.id })}
+                      onClick={() => {
+                        set({ chosenId: chosen ? null : p.id });
+                        if (!chosen) setBurst((n) => n + 1);
+                      }}
                     >
                       {chosen ? "Your pick (click to undo)" : "Choose this one"}
                     </button>
@@ -175,6 +198,16 @@ export default function ApplicationsPage() {
           );
         })}
       </div>
+
+      {burst > 0 && <Burst key={burst} />}
+      {state.chosenId && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-ink p-5 text-white">
+          <p className="text-[15px]">Draft chosen. Next stop: your plan, with deadlines, downloads and a share link.</p>
+          <Link href="/plan" className="inline-flex min-h-11 items-center rounded-[10px] bg-flap px-5 font-semibold text-ink">
+            Go to my plan
+          </Link>
+        </div>
+      )}
 
       <p className="text-xs text-tarmac">
         Drafts are AI-written from what you told us. Replace every yellow blank with your own real details, check

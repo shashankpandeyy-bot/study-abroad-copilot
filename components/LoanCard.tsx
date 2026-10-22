@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { loanSummary, shareOfIncome } from "@/lib/loan";
+import { dual } from "@/lib/money";
 import { useApp } from "@/lib/state";
 import { cardClass, inputClass } from "@/lib/ui";
 
 function usd(n: number): string {
-  return `USD ${Math.round(n).toLocaleString("en-US")}`;
+  return dual(n);
 }
 
 function toNumber(v: string): number | null {

@@ -9,6 +9,7 @@ import {
   WORK_YEARS,
 } from "./options";
 import { EMPTY_PROFILE } from "./profileFields";
+import { centerRisk, orderRisk } from "./risk";
 import type {
   ApplicationPackage,
   Category,
@@ -85,6 +86,12 @@ function ordered(a: number | null, b: number | null): [number | null, number | n
 export function cleanProfile(raw: unknown): StudentProfile | null {
   if (!isObj(raw)) return null;
   const loanWanted = raw.loanWanted === true;
+  // Older data has one `risk`. A range uses riskMin and riskMax. Both are put in order.
+  const oldRisk = pick<Risk>(raw.risk, RISKS, EMPTY_PROFILE.risk);
+  const { riskMin: riskLow, riskMax: riskHigh } = orderRisk(
+    pick<Risk>(raw.riskMin, RISKS, oldRisk),
+    pick<Risk>(raw.riskMax, RISKS, oldRisk)
+  );
   const [budgetMin, budgetMax] = ordered(
     toNumber(raw.budgetMinUsd, 0, 1_000_000),
     toNumber(raw.budgetUsd, 0, 1_000_000)
@@ -135,7 +142,9 @@ export function cleanProfile(raw: unknown): StudentProfile | null {
     budgetMinUsd: budgetMin,
     budgetUsd: budgetMax,
     fundingSources: strList(raw.fundingSources, 5, 40),
-    risk: pick<Risk>(raw.risk, RISKS, EMPTY_PROFILE.risk),
+    risk: centerRisk(riskLow, riskHigh),
+    riskMin: riskLow,
+    riskMax: riskHigh,
     scholarshipNeed: pick<ScholarshipNeed>(raw.scholarshipNeed, NEEDS, EMPTY_PROFILE.scholarshipNeed),
     scholarshipMinUsd: schMin,
     scholarshipMaxUsd: schMax,

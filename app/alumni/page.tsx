@@ -33,7 +33,7 @@ export default function AlumniPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
+    <main className="mx-auto w-full max-w-6xl flex-1 lg:px-8 space-y-6 px-4 py-8">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-ink">Alumni paths</h1>
         <p className="mt-1 text-sm text-tarmac">

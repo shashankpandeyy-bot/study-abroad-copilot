@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Martian_Mono } from "next/font/google";
 import ChatDock from "@/components/ChatDock";
 import CountryTheme from "@/components/CountryTheme";
-import Nav from "@/components/Nav";
+import AppShell from "@/components/AppShell";
 import { AppProvider } from "@/lib/state";
 import "./globals.css";
 
@@ -20,7 +20,7 @@ const martian = Martian_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gatepass: plan your degree abroad",
+  title: "OVEREASE: plan your degree abroad",
   description:
     "Pick a country, set your budget, and get a shortlist, a cost breakdown and personalised application drafts for studying abroad.",
 };
@@ -35,8 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <AppProvider>
           <CountryTheme />
-          <Nav />
-          <div className="flex flex-1 flex-col">{children}</div>
+          <AppShell>{children}</AppShell>
           <ChatDock />
         </AppProvider>
       </body>

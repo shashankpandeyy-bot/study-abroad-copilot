@@ -1,6 +1,8 @@
-# Study Abroad Co-Pilot
+# OVEREASE
 
-An AI co-pilot for people applying to study abroad. It asks the right questions first (mostly by tapping options), scores how complete your profile is, shortlists universities that fit, shows strengths, gaps and a cost breakdown for each program, lets you try "what if" changes, writes personalised application drafts you can compare, helps you find scholarships within a range you set, and gives you a checklist, downloads and a share link for your plan. A chatbot is available on every page.
+_Formerly "Study Abroad Co-Pilot"._
+
+An AI co-pilot for people applying to study abroad. It asks the right questions first (mostly by tapping options), scores how complete your profile is, shortlists universities that fit, shows strengths, gaps and a cost breakdown for each program, lets you try "what if" changes, writes personalised application drafts you can compare, helps you find scholarships within a range you set, and gives you a checklist, downloads and a share link for your plan. A voice guide, also called OVEREASE, listens and replies in 11 languages on every page. Every price shows in US dollars and Indian rupees together, and risk is a range you set, not a single choice.
 
 Built for a hackathon with Next.js and the Google Gemini API.
 
@@ -125,7 +127,19 @@ Real problems found while building, and what the app does about them.
 | Browser storage blocked | The app still works in memory. A refresh then starts over |
 | Programs, scholarships or costs are out of date or wrong | **Not solved.** Every AI figure says it is an estimate from general knowledge and must be verified. Costs and scholarship amounts are ranges, never single "quotes". Scholarship deadlines and links are not generated. Each program has "verify" links that open a Google search for the official page |
 
+## Version 5 additions
+
+- **Risk is a range.** A two-handle slider sets the lowest and highest risk you accept (safer, balanced, ambitious), with presets. The shortlist rules adapt: a range that includes "safer" must include a Safe program, one that reaches "ambitious" must include a Reach, and a Match is always included. Old single-risk data still loads.
+- **USD and INR everywhere.** Prices are stored in USD and shown with rupees beside them (for example "USD 35,000 (₹29.4 L)"). The rupee figure uses one **sample rate of ₹84 per USD**, not a live rate, and the app says so.
+- **OVEREASE voice guide.** Tap the mic and speak, or type. Replies come back in the chosen language (English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Urdu) and can be read aloud. Listening and speaking use the browser's own speech features, so they depend on the browser and the voices installed on the device. Typed questions work everywhere.
+- **New layout.** A sidebar journey (eight stops with a rank that rises as you go), a trip strip across the top, a bottom tab bar on phones, and wider pages. The landing page is a scroll story.
+- **Reference-inspired screens.** A boarding-pass country picker with a route arc, a Wise-style conversion card, an intake calendar coloured by time to prepare, city skyline cards, a split-flap board for the shortlist and the next deadlines, and passport stamps for milestones.
+
 ## Known gaps
+
+- **Voice is only partly verified.** Typed Hindi and Tamil questions were tested against the live AI and came back in the right script. The microphone itself, and spoken replies, were not tested with real speech, and some browsers (such as Firefox) cannot listen at all. Indian-language voices for reading aloud are missing on some devices.
+- **The rupee figures are estimates at a fixed sample rate**, and the typical yearly costs on the country cards are rough ranges for illustration, not quotes.
+- **City pictures are drawn illustrations**, not photographs.
 
 - **Facts and costs come from the model's memory.** Programs, requirements, costs and scholarships can be outdated or wrong. This is the biggest risk. The cost ranges and scholarship amounts are labelled estimates, and the verify links point you to the official pages.
 - **Google Search grounding is built but switched off.** The two routes (`/api/facts/search`, `/api/facts/extract`) and the code that drops any fact without a real source are in the repo and unit tested, but Google refused the search tool on the free Gemini key I have (error 429), so it has **not** been run against the real service. To try it, enable billing on your key and set `GROUNDING=on`. Until then the app uses the "verify links" fallback instead and never claims a figure was checked.
@@ -189,6 +203,10 @@ It checks the health endpoint (is the key set?), every page, the `/scholarships`
 app/                  pages: / (intake), /profile, /programs, /applications, /funding, /plan, /plan/shared, /alumni
 app/api/              shortlist, whatif, insight, application, chat, scholarships, alumni, health, facts/*
 components/           screens and widgets (wizard, strength meter, cost panel, compare tables, checklist, chat dock...)
+lib/money.ts          USD and INR display (one sample rate)
+lib/risk.ts           risk range helpers
+lib/languages.ts      the languages OVEREASE can listen to and answer in
+lib/countries.ts      the eight destinations, their themes and sample costs
 lib/ai.ts             the only file that talks to Gemini (retry, errors, structured output)
 lib/prompts.ts        what the AI is asked, and the data shapes it must answer in
 lib/validate.ts       input cleaning and checks on every AI reply

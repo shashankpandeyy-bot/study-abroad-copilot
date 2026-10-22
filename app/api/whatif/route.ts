@@ -1,5 +1,5 @@
 import { BadAnswerError, BadRequestError, callTool, errorResponse, withRetry } from "@/lib/ai";
-import { canDropPrograms, describeProfileChanges, mixProblem } from "@/lib/checks";
+import { canDropPrograms, describeProfileChanges, mixProblemRange } from "@/lib/checks";
 import { submitWhatIfTool, whatIfSystem, whatIfUser } from "@/lib/prompts";
 import {
   assertWhatIfExplained,
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       });
       const parsed = parseWhatIfInput(reply.input, current, dropsAllowed);
       assertWhatIfExplained(current, parsed);
-      const problem = mixProblem(parsed.programs, profile.risk);
+      const problem = mixProblemRange(parsed.programs, profile.riskMin, profile.riskMax);
       if (problem) throw new BadAnswerError(`The AI's shortlist broke your risk setting (${problem}). Please try again.`);
       return parsed;
     });

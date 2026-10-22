@@ -76,14 +76,14 @@ assert.doesNotThrow(() => parseWhatIfInput({ added: [raw("G Uni", "Reach", "It w
 const S = STRONG_SAMPLE; // budget 35000, balanced, helpful scholarship
 assert.equal(canDropPrograms(S, { ...S }), false, "no change");
 assert.equal(canDropPrograms(S, { ...S, budgetUsd: 60000 }), false, "budget up never allows a drop");
-assert.equal(canDropPrograms(S, { ...S, budgetUsd: 60000, risk: "high" }), false, "budget up + high risk: no drops");
+assert.equal(canDropPrograms(S, { ...S, budgetUsd: 60000, risk: "high", riskMin: "high", riskMax: "high" }), false, "budget up + high risk: no drops");
 assert.equal(canDropPrograms(S, { ...S, budgetUsd: 15000 }), true, "budget down allows drops");
 assert.equal(canDropPrograms(S, { ...S, countries: "Germany" }), true, "new countries");
 assert.equal(canDropPrograms(S, { ...S, duration: "3 years or more" }), true, "new duration");
 assert.equal(canDropPrograms(S, { ...S, scholarshipNeed: "essential" }), true, "scholarship now essential");
 assert.equal(canDropPrograms(S, { ...S, scholarshipNeed: "none" }), false, "scholarship no longer needed does not remove anything");
-assert.equal(canDropPrograms(S, { ...S, risk: "low" }), true, "lower risk may need fewer Reach");
-assert.equal(canDropPrograms(S, { ...S, risk: "high" }), false);
+assert.equal(canDropPrograms(S, { ...S, risk: "low", riskMin: "low", riskMax: "low" }), true, "lower risk may need fewer Reach");
+assert.equal(canDropPrograms(S, { ...S, risk: "high", riskMin: "high", riskMax: "high" }), false);
 assert.equal(canDropPrograms(S, { ...S, englishScore: "6.0" }), true, "score change");
 assert.equal(canDropPrograms({ ...S, budgetUsd: null }, { ...S, budgetUsd: 20000 }), false, "no previous budget means no basis for a drop");
 assert.equal(canDropPrograms(S, { ...S, loanYears: 3 }), false, "loan years alone do not drop programs");

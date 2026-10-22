@@ -1,8 +1,10 @@
 "use client";
 
+import { Mic, Square, Volume2, VolumeX, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { errorText, post } from "@/lib/api";
+import { DEFAULT_LANGUAGE, LANGUAGES, languageByCode } from "@/lib/languages";
 import { applyProposal, displayValue } from "@/lib/profileFields";
 import { useApp } from "@/lib/state";
 import type { ChatMessage, Proposal } from "@/lib/types";
@@ -10,6 +12,8 @@ import { btnPrimary, btnSmall } from "@/lib/ui";
 
 const PAGE_NAMES: Record<string, string> = {
   "/": "intake",
+  "/fly": "country picker",
+  "/fly/budget": "budget",
   "/profile": "profile",
   "/programs": "programs",
   "/applications": "applications",
@@ -24,25 +28,102 @@ const STARTERS = [
   "How do I choose between Reach and Safe?",
 ];
 
+// The browser's own speech recognition. Not every browser has it, so the mic hides when it is missing.
+type Recognition = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onerror: ((e: { error: string }) => void) | null;
+  onend: (() => void) | null;
+};
+type RecognitionCtor = new () => Recognition;
+
+function recognitionCtor(): RecognitionCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+const MIC_ERRORS: Record<string, string> = {
+  "not-allowed": "The microphone is blocked. Allow it in your browser's site settings, then tap the mic again.",
+  "service-not-allowed": "Voice input is blocked in this browser. Type your question instead.",
+  "no-speech": "I did not hear anything. Tap the mic and speak a little closer.",
+  "audio-capture": "No microphone found. Connect one, or type your question.",
+  network: "Voice input needs an internet connection. Check it and try again.",
+  "language-not-supported": "This browser cannot listen in that language. Pick another, or type.",
+};
+
+const LANG_KEY = "overease:language";
+const SPEAK_KEY = "overease:speak";
+
 export default function ChatDock() {
   const { state, hydrated, set } = useApp();
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Read the saved choices once. The dock renders nothing until the app has loaded, so this cannot mismatch the server.
+  const [langCode, setLangCode] = useState(() => {
+    try {
+      const saved = typeof window === "undefined" ? null : localStorage.getItem(LANG_KEY);
+      return saved && LANGUAGES.some((x) => x.code === saved) ? saved : DEFAULT_LANGUAGE;
+    } catch {
+      return DEFAULT_LANGUAGE;
+    }
+  });
+  const [speak, setSpeak] = useState(() => {
+    try {
+      return typeof window === "undefined" ? true : localStorage.getItem(SPEAK_KEY) !== "off";
+    } catch {
+      return true;
+    }
+  });
+  const [listening, setListening] = useState(false);
+  const [heard, setHeard] = useState("");
+  const [canListen] = useState(() => Boolean(recognitionCtor()));
+  const recRef = useRef<Recognition | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const lang = languageByCode(langCode);
   // The typed text lives in app state so other pages can pre-fill it ("Ask the AI about this").
   const input = state.chatDraft;
   const setInput = (value: string) => set({ chatDraft: value });
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [state.chat, busy, state.chatOpen]);
+  }, [state.chat, busy, state.chatOpen, heard]);
 
-  // A shared plan is read-only and belongs to someone else, so the viewer gets no chat about it.
-  if (!hydrated || pathname.startsWith("/plan/shared")) return null;
+  useEffect(() => () => recRef.current?.abort(), []);
 
-  async function send() {
-    const text = input.trim();
+  // Other parts of the app (the landing page) can switch the language and open the panel.
+  useEffect(() => {
+    const onLang = (e: Event) => {
+      const code = (e as CustomEvent<string>).detail;
+      if (LANGUAGES.some((l) => l.code === code)) setLangCode(code);
+    };
+    window.addEventListener("overease:language", onLang);
+    return () => window.removeEventListener("overease:language", onLang);
+  }, []);
+
+  const say = useCallback(
+    (text: string) => {
+      if (!speak || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang.speech;
+      const voices = window.speechSynthesis.getVoices();
+      const match = voices.find((v) => v.lang.replace("_", "-").toLowerCase() === lang.speech.toLowerCase()) ?? voices.find((v) => v.lang.toLowerCase().startsWith(lang.code));
+      if (match) utter.voice = match;
+      utter.rate = 0.98;
+      window.speechSynthesis.speak(utter);
+    },
+    [speak, lang]
+  );
+
+  async function send(override?: string) {
+    const text = (override ?? input).trim();
     if (!text || busy) return;
     const before = state.chat;
     const history: ChatMessage[] = [...before, { role: "user", text }];
@@ -54,6 +135,7 @@ export default function ChatDock() {
         profile: state.profile,
         programs: state.shortlist?.programs ?? [],
         page: PAGE_NAMES[pathname] ?? "app",
+        language: lang.name,
         messages: history.slice(-10).map((m) => ({ role: m.role, text: m.text })),
       });
       set((prev) => ({
@@ -67,11 +149,75 @@ export default function ChatDock() {
           },
         ],
       }));
+      say(res.message);
     } catch (e) {
       set({ chat: before, chatDraft: text });
       setError(errorText(e));
     } finally {
       setBusy(false);
+    }
+  }
+
+  function toggleMic() {
+    if (listening) {
+      recRef.current?.stop();
+      return;
+    }
+    const Ctor = recognitionCtor();
+    if (!Ctor) return;
+    window.speechSynthesis?.cancel();
+    setError("");
+    setHeard("");
+    const rec = new Ctor();
+    rec.lang = lang.speech;
+    rec.interimResults = true;
+    rec.continuous = false;
+    let finalText = "";
+    rec.onresult = (e) => {
+      let interim = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      setHeard((finalText + interim).trim());
+    };
+    rec.onerror = (e) => {
+      if (e.error !== "aborted") setError(MIC_ERRORS[e.error] ?? "Voice input stopped unexpectedly. Try again or type.");
+    };
+    rec.onend = () => {
+      setListening(false);
+      setHeard("");
+      const said = finalText.trim();
+      if (said) void send(said);
+    };
+    recRef.current = rec;
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      setError("Could not start the microphone. Try again.");
+    }
+  }
+
+  function chooseLanguage(code: string) {
+    setLangCode(code);
+    window.speechSynthesis?.cancel();
+    try {
+      localStorage.setItem(LANG_KEY, code);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function toggleSpeak() {
+    const next = !speak;
+    setSpeak(next);
+    if (!next) window.speechSynthesis?.cancel();
+    try {
+      localStorage.setItem(SPEAK_KEY, next ? "on" : "off");
+    } catch {
+      /* ignore */
     }
   }
 
@@ -86,44 +232,71 @@ export default function ChatDock() {
     });
   }
 
+  if (!hydrated || pathname.startsWith("/plan/shared")) return null;
+
   if (!state.chatOpen) {
     return (
       <button
         type="button"
         onClick={() => set({ chatOpen: true })}
-        className="fixed bottom-20 right-4 z-30 rounded-full bg-jet px-5 py-3 text-sm font-medium text-white shadow-lg hover:bg-jet-deep print:hidden"
+        aria-label="Open OVEREASE, the voice guide"
+        className="fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex min-h-12 items-center gap-2 rounded-full bg-ink py-2 pl-3 pr-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgb(17_27_46/0.28)] transition-transform hover:scale-[1.03] active:scale-95 lg:bottom-6 print:hidden"
       >
-        Ask the AI
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-flap text-ink">
+          <Mic className="h-4 w-4" aria-hidden />
+        </span>
+        OVEREASE
       </button>
     );
   }
 
   return (
     <section
-      aria-label="AI advisor chat"
-      className="fixed inset-0 z-40 flex flex-col bg-white sm:inset-auto sm:bottom-20 sm:right-4 sm:z-30 sm:h-[min(34rem,72vh)] sm:w-[min(26rem,calc(100vw-2rem))] sm:rounded-xl sm:border sm:border-line sm:shadow-2xl"
+      aria-label="OVEREASE voice guide"
+      className="fixed inset-0 z-40 flex flex-col bg-surface sm:inset-auto sm:bottom-6 sm:right-4 sm:h-[min(38rem,80vh)] sm:w-[min(26rem,calc(100vw-2rem))] sm:rounded-[14px] sm:border sm:border-line sm:shadow-[0_20px_60px_rgb(17_27_46/0.25)]"
     >
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <h2 className="text-sm font-semibold text-ink">Your advisor</h2>
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-flap">
+          <Mic className="h-4 w-4" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold leading-tight text-ink">OVEREASE</h2>
+          <p className="truncate text-xs text-tarmac">Speak or type, in your language</p>
+        </div>
+        <select
+          aria-label="Language"
+          value={langCode}
+          onChange={(e) => chooseLanguage(e.target.value)}
+          className="ml-auto min-h-9 max-w-[7.5rem] rounded-lg border border-line bg-surface px-2 text-sm text-ink"
+        >
+          {LANGUAGES.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.native}
+            </option>
+          ))}
+        </select>
         <button
           type="button"
-          className="ml-auto text-xs text-tarmac hover:text-ink"
-          onClick={() => set({ chat: [] })}
-          disabled={state.chat.length === 0}
+          onClick={toggleSpeak}
+          aria-pressed={speak}
+          aria-label={speak ? "Turn spoken replies off" : "Turn spoken replies on"}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-tarmac hover:bg-ink/5 hover:text-ink"
         >
-          Clear chat
+          {speak ? <Volume2 className="h-4 w-4" aria-hidden /> : <VolumeX className="h-4 w-4" aria-hidden />}
         </button>
-        <button type="button" className={btnSmall} onClick={() => set({ chatOpen: false })} aria-label="Close chat">
-          Close
+        <button type="button" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-tarmac hover:bg-ink/5 hover:text-ink" onClick={() => set({ chatOpen: false })} aria-label="Close OVEREASE">
+          <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
+      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-[15px]">
         {state.chat.length === 0 && (
-          <div className="space-y-2">
-            <p className="text-tarmac">
-              Tell me about yourself or ask anything. When you share new facts, I will suggest profile updates
-              and you decide whether to apply them.
+          <div className="space-y-3">
+            <p className="rounded-2xl bg-concourse px-3 py-2 text-ink" lang={lang.code}>
+              {lang.greeting}
+            </p>
+            <p className="text-sm text-tarmac">
+              Tell me about yourself and I will suggest profile updates. You decide whether to apply them.
             </p>
             <div className="flex flex-wrap gap-2">
               {STARTERS.map((s) => (
@@ -138,8 +311,9 @@ export default function ChatDock() {
         {state.chat.map((m, i) => (
           <div key={i} className={m.role === "user" ? "text-right" : ""}>
             <div
-              className={`inline-block max-w-[92%] whitespace-pre-wrap rounded-xl px-3 py-2 text-left ${
-                m.role === "user" ? "bg-jet text-white" : "bg-ink/5 text-ink"
+              lang={m.role === "assistant" ? lang.code : undefined}
+              className={`inline-block max-w-[92%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-left ${
+                m.role === "user" ? "bg-jet text-white" : "bg-concourse text-ink"
               }`}
             >
               {m.text}
@@ -148,17 +322,15 @@ export default function ChatDock() {
               const st = m.proposalState?.[j] ?? "pending";
               const shown = displayValue({ ...state.profile, [p.field]: p.value }, p.field);
               return (
-                <div key={j} className="mt-2 rounded-xl border border-main/30 bg-main-tint p-3 text-left">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-main-ink">
-                    Suggested profile update
-                  </p>
+                <div key={j} className="mt-2 rounded-[10px] border border-main/30 bg-main-tint p-3 text-left">
+                  <p className="text-sm font-semibold text-main-ink">Suggested profile update</p>
                   <p className="mt-1 text-ink">
                     {p.label}: <strong>{shown}</strong>
                   </p>
                   {p.reason && <p className="text-xs text-tarmac">{p.reason}</p>}
                   {st === "pending" ? (
                     <div className="mt-2 flex gap-2">
-                      <button type="button" className={btnPrimary + " !px-3 !py-1.5"} onClick={() => resolve(i, j, "applied")}>
+                      <button type="button" className={btnPrimary + " !min-h-9 !px-3 !py-1.5"} onClick={() => resolve(i, j, "applied")}>
                         Apply
                       </button>
                       <button type="button" className={btnSmall} onClick={() => resolve(i, j, "dismissed")}>
@@ -166,9 +338,7 @@ export default function ChatDock() {
                       </button>
                     </div>
                   ) : (
-                    <p className="mt-2 text-xs font-medium text-tarmac">
-                      {st === "applied" ? "Applied to your profile." : "Dismissed."}
-                    </p>
+                    <p className="mt-2 text-xs font-medium text-tarmac">{st === "applied" ? "Applied to your profile." : "Dismissed."}</p>
                   )}
                 </div>
               );
@@ -176,6 +346,13 @@ export default function ChatDock() {
           </div>
         ))}
 
+        {heard && (
+          <p className="text-right">
+            <span className="inline-block max-w-[92%] rounded-2xl border border-dashed border-jet/50 px-3 py-2 text-left text-tarmac" lang={lang.code}>
+              {heard}
+            </span>
+          </p>
+        )}
         {busy && (
           <p role="status" className="flex items-center gap-2 text-tarmac">
             <span className="h-3 w-3 animate-spin rounded-full border-2 border-jet border-t-transparent" />
@@ -183,7 +360,7 @@ export default function ChatDock() {
           </p>
         )}
         {error && (
-          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-800">
+          <p role="alert" className="rounded-lg border border-stamp/30 bg-stamp-tint p-2 text-sm text-stamp">
             {error}
           </p>
         )}
@@ -191,16 +368,29 @@ export default function ChatDock() {
       </div>
 
       <form
-        className="flex gap-2 border-t border-line p-3"
+        className="flex items-end gap-2 border-t border-line p-3"
         onSubmit={(e) => {
           e.preventDefault();
           void send();
         }}
       >
+        {canListen ? (
+          <button
+            type="button"
+            onClick={toggleMic}
+            aria-pressed={listening}
+            aria-label={listening ? "Stop listening" : `Speak in ${lang.name}`}
+            className={`relative grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition-colors ${listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
+          >
+            {listening && <span className="absolute inset-0 animate-ping rounded-full bg-stamp/40 motion-reduce:hidden" />}
+            {listening ? <Square className="relative h-4 w-4" aria-hidden /> : <Mic className="relative h-5 w-5" aria-hidden />}
+          </button>
+        ) : null}
         <textarea
           rows={2}
           maxLength={2000}
           value={input}
+          lang={lang.code}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -208,13 +398,16 @@ export default function ChatDock() {
               void send();
             }
           }}
-          placeholder="Type a message..."
-          className="flex-1 resize-none rounded-lg border border-line px-3 py-2 text-sm focus:border-jet focus:outline-none focus:ring-2 focus:ring-main/30"
+          placeholder={listening ? "Listening..." : canListen ? `Tap the mic or type in ${lang.name}` : `Type in ${lang.name}`}
+          className="min-h-12 flex-1 resize-none rounded-[10px] border border-line bg-surface px-3 py-2 text-base text-ink focus:border-jet focus:outline-none focus:ring-2 focus:ring-jet/30"
         />
-        <button type="submit" className={btnPrimary + " self-end"} disabled={busy || !input.trim()}>
+        <button type="submit" className={btnPrimary} disabled={busy || !input.trim()}>
           Send
         </button>
       </form>
+      {!canListen && (
+        <p className="px-4 pb-3 text-xs text-tarmac">Voice input works in Chrome, Edge and Safari. Replies can still be read aloud here.</p>
+      )}
     </section>
   );
 }

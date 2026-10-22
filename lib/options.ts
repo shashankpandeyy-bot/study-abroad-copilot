@@ -173,3 +173,18 @@ export function upcomingIntakes(today: Date, count = 6): string[] {
   const cutoff = today.getTime() + 60 * 24 * 3600 * 1000;
   return terms.filter((t) => t.start.getTime() > cutoff).slice(0, count).map((t) => t.label);
 }
+
+export type IntakeOption = { label: string; start: Date; monthsAway: number; season: "Spring" | "Fall" };
+
+// The same terms as upcomingIntakes, with their start date and how far away they are.
+export function upcomingIntakeOptions(today: Date, count = 6): IntakeOption[] {
+  const out: IntakeOption[] = [];
+  for (const label of upcomingIntakes(today, count)) {
+    const year = Number(label.slice(-4));
+    const season = label.startsWith("Spring") ? "Spring" : "Fall";
+    const start = season === "Spring" ? new Date(Date.UTC(year, 0, 15)) : new Date(Date.UTC(year, 8, 1));
+    const monthsAway = Math.max(0, Math.round((start.getTime() - today.getTime()) / (30.44 * 24 * 3600 * 1000)));
+    out.push({ label, start, monthsAway, season });
+  }
+  return out;
+}

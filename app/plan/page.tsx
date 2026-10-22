@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import FlapText from "@/components/FlapText";
+import Passport from "@/components/Passport";
 import ChecklistTracker, { effectiveDate } from "@/components/ChecklistTracker";
 import PrintableDraft from "@/components/PrintableDraft";
 import { downloadTextFile, downloadWord } from "@/lib/export";
@@ -13,6 +15,12 @@ import type { Program, Task } from "@/lib/types";
 import { useRequireShortlist } from "@/lib/useGuard";
 import { btnPrimary, btnSecondary, cardClass, inputClass } from "@/lib/ui";
 import PageLoading from "@/components/PageLoading";
+
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+function dayLabel(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return m && d ? `${String(d).padStart(2, "0")} ${MONTHS[m - 1]} ${y}` : iso;
+}
 
 export default function PlanPage() {
   const ready = useRequireShortlist();
@@ -120,14 +128,16 @@ export default function PlanPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-8">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Your plan</h1>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 lg:px-8">
+      <header className="mb-6">
+        <h1 className="text-[2rem] font-semibold leading-tight text-ink">Your plan</h1>
         <p className="mt-1 text-sm text-tarmac">
           A checklist and timeline for your application, your drafts to download, and a link you can share.
         </p>
       </header>
 
+      <div className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
+      <div className="space-y-6">
       <section className={cardClass}>
         <h2 className="text-lg font-semibold text-ink">Timeline and checklist</h2>
         {intake ? (
@@ -153,19 +163,6 @@ export default function PlanPage() {
             </Link>{" "}
             to add one set of tasks per program.
           </p>
-        )}
-
-        {next.length > 0 && (
-          <div className="mt-4 rounded-lg bg-main-tint p-3">
-            <p className="text-sm font-semibold text-main-ink">Coming up</p>
-            <ul className="mt-1 space-y-0.5 text-sm text-main-ink">
-              {next.map((t) => (
-                <li key={t.id}>
-                  {effectiveDate(t)}: {t.label}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
         <div className="mt-5">
@@ -268,6 +265,35 @@ export default function PlanPage() {
           </div>
         )}
       </section>
+
+      </div>
+
+      <aside className="space-y-6 lg:sticky lg:top-24">
+        <div className="board overflow-hidden">
+          <div className="border-b border-white/10 px-4 py-3">
+            <h2 className="text-sm font-medium text-white">Next departures</h2>
+            <p className="text-xs text-white/70">Your three nearest open tasks</p>
+          </div>
+          {next.length === 0 ? (
+            <p className="px-4 py-5 text-sm text-white/75">
+              Nothing due yet. Pick an intake and select programs to fill the board.
+            </p>
+          ) : (
+            <ul>
+              {next.map((t, i) => (
+                <li key={t.id} className="border-b border-white/10 px-4 py-3 last:border-0">
+                  <p className="num text-[13px]">
+                    <FlapText text={dayLabel(effectiveDate(t))} delay={200 + i * 220} />
+                  </p>
+                  <p className="mt-1.5 text-sm text-white/85">{t.label}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Passport />
+      </aside>
+      </div>
 
       {printProgram && printApp && (
         <PrintableDraft name={state.profile.fullName} program={printProgram} application={printApp} />

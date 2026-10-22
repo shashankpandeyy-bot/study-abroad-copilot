@@ -7,10 +7,19 @@ import {
   THESIS_PREFERENCES,
   WORK_YEARS,
 } from "./options";
-import type { ProfileField, Proposal, StudentProfile } from "./types";
+import { centerRisk, orderRisk, riskRangeText } from "./risk";
+import type { ProfileField, Proposal, Risk, StudentProfile } from "./types";
 
 // Proposals are validated on the server (see coerceValue), so applying one is a plain assignment.
 export function applyProposal(profile: StudentProfile, p: Proposal): StudentProfile {
+  if (p.field === "risk" || p.field === "riskMin" || p.field === "riskMax") {
+    const v = p.value as Risk;
+    const next =
+      p.field === "risk"
+        ? { riskMin: v, riskMax: v }
+        : orderRisk(p.field === "riskMin" ? v : profile.riskMin, p.field === "riskMax" ? v : profile.riskMax);
+    return { ...profile, ...next, risk: centerRisk(next.riskMin, next.riskMax) };
+  }
   return { ...profile, [p.field]: p.value } as StudentProfile;
 }
 
@@ -45,6 +54,8 @@ export const EMPTY_PROFILE: StudentProfile = {
   budgetUsd: null,
   fundingSources: [],
   risk: "balanced",
+  riskMin: "balanced",
+  riskMax: "balanced",
   scholarshipNeed: "helpful",
   scholarshipMinUsd: null,
   scholarshipMaxUsd: null,
@@ -91,6 +102,8 @@ export const FIELD_LABELS: Record<ProfileField, string> = {
   budgetUsd: "Budget per year, upper end",
   fundingSources: "Funding sources",
   risk: "Risk appetite",
+  riskMin: "Lowest risk you accept",
+  riskMax: "Highest risk you accept",
   scholarshipNeed: "Scholarship need",
   scholarshipMinUsd: "Scholarship wanted, lower end",
   scholarshipMaxUsd: "Scholarship wanted, upper end",
@@ -136,7 +149,10 @@ export function displayValue(p: StudentProfile, f: ProfileField): string {
     case "scholarshipMaxUsd":
       return p.scholarshipMaxUsd != null ? `${usd(p.scholarshipMaxUsd)} per year` : "Not given";
     case "risk":
-      return RISK_TEXT[p.risk];
+      return riskRangeText(p.riskMin ?? p.risk, p.riskMax ?? p.risk);
+    case "riskMin":
+    case "riskMax":
+      return RISK_TEXT[p[f] ?? p.risk];
     case "scholarshipNeed":
       return SCHOLARSHIP_TEXT[p.scholarshipNeed];
     case "englishStatus":

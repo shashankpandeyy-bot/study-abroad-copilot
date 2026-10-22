@@ -1,4 +1,5 @@
 import { FIELD_LABELS, displayValue } from "./profileFields";
+import { riskIndex } from "./risk";
 import type { ProfileField, Program, QA, Risk, StudentProfile } from "./types";
 
 export function isThinProfile(p: StudentProfile): boolean {
@@ -111,6 +112,20 @@ export function mixProblem(programs: Program[], risk: Risk): string | null {
   return null;
 }
 
+// Same idea for a range of risk. One level behaves exactly as before. A wider range allows a spread.
+export function mixProblemRange(programs: Program[], min: Risk, max: Risk): string | null {
+  if (min === max) return mixProblem(programs, min);
+  const count = (c: Program["category"]) => programs.filter((p) => p.category === c).length;
+  const reach = count("Reach");
+  const safe = count("Safe");
+  if (count("Match") < 1) return "this risk range needs at least one Match program";
+  if (min === "low" && safe < 1) return "this risk range needs at least one Safe program";
+  if (max === "high" && reach < 1) return "this risk range needs at least one Reach program";
+  if (max === "balanced" && reach > 2) return "this risk range allows at most 2 Reach programs";
+  if (min === "high" && safe > 1) return "this risk range allows at most 1 Safe program";
+  return null;
+}
+
 // A program may only be dropped when something changed that can make a program unsuitable.
 // A bigger budget or a higher risk appetite never does, so the AI's drops are ignored in that case.
 export function canDropPrograms(from: StudentProfile, to: StudentProfile): boolean {
@@ -120,7 +135,7 @@ export function canDropPrograms(from: StudentProfile, to: StudentProfile): boole
     from.countries !== to.countries ||
     from.duration !== to.duration ||
     (to.scholarshipNeed === "essential" && from.scholarshipNeed !== "essential") ||
-    (to.risk === "low" && from.risk !== "low") ||
+    riskIndex(to.riskMax ?? to.risk) < riskIndex(from.riskMax ?? from.risk) ||
     from.englishScore !== to.englishScore ||
     from.entranceScore !== to.entranceScore ||
     from.englishStatus !== to.englishStatus ||
@@ -135,8 +150,12 @@ export function canDropPrograms(from: StudentProfile, to: StudentProfile): boole
 export type ProfileChange = { field: ProfileField; label: string; from: string; to: string };
 
 export function describeProfileChanges(from: StudentProfile, to: StudentProfile): ProfileChange[] {
+  // The risk range is described once, as "risk", from its readable text, not as three separate fields.
   return (Object.keys(FIELD_LABELS) as ProfileField[])
-    .filter((f) => JSON.stringify(from[f]) !== JSON.stringify(to[f]))
+    .filter((f) => f !== "riskMin" && f !== "riskMax")
+    .filter((f) =>
+      f === "risk" ? displayValue(from, "risk") !== displayValue(to, "risk") : JSON.stringify(from[f]) !== JSON.stringify(to[f])
+    )
     .map((f) => ({
       field: f,
       label: FIELD_LABELS[f],

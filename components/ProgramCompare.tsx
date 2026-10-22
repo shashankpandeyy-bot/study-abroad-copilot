@@ -1,6 +1,7 @@
 "use client";
 
-import { loanOnGap, summarizeCost, usdRange } from "@/lib/cost";
+import { loanOnGap, summarizeCost } from "@/lib/cost";
+import { dualRange as usdRange } from "@/lib/money";
 import type { DraftState } from "@/lib/state";
 import type { InsightsApi } from "@/lib/useInsights";
 import type { Program, ScholarshipResponse, StudentProfile } from "@/lib/types";

@@ -72,7 +72,7 @@ export default function ProgramsPage() {
   const count = selectedPrograms.length;
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8 pb-28">
+    <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-8 pb-28 lg:px-8">
       <header>
         <h1 className="text-[2rem] font-semibold leading-tight text-ink">Your programs</h1>
         <p className="mt-1 text-sm text-tarmac">
@@ -81,20 +81,21 @@ export default function ProgramsPage() {
         </p>
       </header>
 
-      <DeparturesBoard programs={shortlist.programs} selected={state.selected} />
+      <div className="grid gap-5 lg:grid-cols-[3fr_2fr] lg:items-start">
+        <DeparturesBoard programs={shortlist.programs} selected={state.selected} />
+        {shortlist.assumptions.length > 0 && (
+          <div className="rounded-[10px] border border-line bg-surface p-5 text-sm text-ink">
+            <p className="text-base font-semibold text-ink">What we assumed</p>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-tarmac">
+              {shortlist.assumptions.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
-      {shortlist.assumptions.length > 0 && (
-        <div className="rounded-lg border border-line bg-ink/5 p-4 text-sm text-ink">
-          <p className="font-medium text-ink">What we assumed</p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5">
-            {shortlist.assumptions.map((a, i) => (
-              <li key={i}>{a}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {shortlist.programs.map((p) => (
           <div key={p.id} id={`p-${p.id}`} className="scroll-mt-20">
           <ProgramCard
@@ -133,7 +134,7 @@ export default function ProgramsPage() {
         apply.
       </p>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-white/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 lg:bottom-0 lg:left-64 border-t border-line bg-white/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-3 px-4 py-3">
           <p className="text-sm text-ink">
             {count} of {MAX_SELECTED} selected

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import IntakeWizard from "@/components/IntakeWizard";
 import Landing from "@/components/Landing";
+import Passport from "@/components/Passport";
 import Questions from "@/components/Questions";
 import { errorText, post } from "@/lib/api";
 import { useApp } from "@/lib/state";
@@ -71,14 +72,16 @@ export default function IntakePage() {
   if (!started) return <Landing />;
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 lg:px-8">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Find where you fit</h1>
-        <p className="mt-2 text-tarmac">
-          Answer a few questions about your course, exams, money and risk. We shortlist universities, let you
-          try what-if changes, and draft applications you can compare.
+        <h1 className="text-[2rem] font-semibold leading-tight text-ink sm:text-[2.5rem]">Check in</h1>
+        <p className="mt-2 max-w-[56ch] text-tarmac">
+          Six short parts about your marks, exams, money and risk. Most are taps. We use them to shortlist universities and
+          write your drafts.
         </p>
       </header>
+      <div className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
+      <div>
 
       {busy && (
         <div
@@ -144,6 +147,29 @@ export default function IntakePage() {
         Privacy: what you type is sent to Google&apos;s Gemini API to generate results, and your journey is saved
         only in this browser. Use &quot;Start over&quot; to clear it.
       </p>
+      </div>
+
+      <aside className="space-y-6 lg:sticky lg:top-24">
+        <Passport />
+        <section className="rounded-[10px] border border-line bg-surface p-5">
+          <h2 className="text-base font-semibold text-ink">Why we ask</h2>
+          <ul className="mt-3 space-y-3 text-sm text-tarmac">
+            <li>
+              <span className="font-medium text-ink">Marks and exams</span> decide whether a school is a reach, a match or a safe bet.
+            </li>
+            <li>
+              <span className="font-medium text-ink">Budget</span> removes programmes you could not pay for, and shows loans honestly.
+            </li>
+            <li>
+              <span className="font-medium text-ink">Risk range</span> sets how bold your shortlist is.
+            </li>
+            <li>
+              <span className="font-medium text-ink">Your story</span> becomes the facts in your drafts. Nothing is invented.
+            </li>
+          </ul>
+        </section>
+      </aside>
+      </div>
     </main>
   );
 }

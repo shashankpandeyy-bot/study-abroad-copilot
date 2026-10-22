@@ -1,5 +1,6 @@
 "use client";
 
+import { dual } from "@/lib/money";
 import ProgramPicker from "@/components/ProgramPicker";
 import RangeSlider from "@/components/RangeSlider";
 import ScholarshipList from "@/components/ScholarshipList";
@@ -11,7 +12,7 @@ import { useProgramData } from "@/lib/useProgramData";
 import { btnSecondary, cardClass } from "@/lib/ui";
 import PageLoading from "@/components/PageLoading";
 
-const usd = (n: number) => `USD ${n.toLocaleString("en-US")}`;
+const usd = (n: number) => dual(n);
 
 export default function FundingPage() {
   const { set, askAi } = useApp();
@@ -47,7 +48,7 @@ export default function FundingPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
+    <main className="mx-auto w-full max-w-6xl flex-1 lg:px-8 space-y-6 px-4 py-8">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-ink">Funding and scholarships</h1>
         <p className="mt-1 text-sm text-tarmac">

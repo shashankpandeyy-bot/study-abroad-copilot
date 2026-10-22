@@ -1,5 +1,5 @@
 import { BadAnswerError, callTool, errorResponse, withRetry } from "@/lib/ai";
-import { isThinProfile, mixProblem } from "@/lib/checks";
+import { isThinProfile, mixProblemRange } from "@/lib/checks";
 import {
   askMoreQuestionsTool,
   formatAnswers,
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         return { status: "questions", questions: parseQuestionsInput(result.input) };
       }
       const shortlist = parseShortlistInput(result.input);
-      const problem = mixProblem(shortlist.programs, profile.risk);
+      const problem = mixProblemRange(shortlist.programs, profile.riskMin, profile.riskMax);
       if (problem) throw new BadAnswerError(`The AI's shortlist broke your risk setting (${problem}). Please try again.`);
       return { status: "shortlist", ...shortlist };
     });
