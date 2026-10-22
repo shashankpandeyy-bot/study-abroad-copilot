@@ -19,7 +19,7 @@ Built for a hackathon with Next.js and the Google Gemini API.
 | 2 | Produce a personalised application and the chance of being shortlisted | Applications page: chance band and range with reasons, and a draft built from the student's own facts |
 | 3 | Ask more questions to understand the candidate better, using the student's own answers | Intake follow-up questions (max 2 rounds, "Skip" always available), plus the chat on every page |
 
-All three passed in manual runs against the live Gemini API. See [Known gaps](#known-gaps) for what was and was not re-checked.
+All three passed in manual runs against the live Gemini API. See [PROGRESS.md](PROGRESS.md) for screenshots, bugs found and fixed, and measured results, and [Known gaps](#known-gaps) for what was and was not re-checked.
 
 ## Current workflow → future workflow
 
