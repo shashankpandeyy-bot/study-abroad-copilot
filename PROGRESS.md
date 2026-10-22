@@ -14,7 +14,7 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 4 on a phone | Every page measured at 375 px wide: no sideways scrolling. Not tested on a real phone |
 | Google Search grounding with source links | Code and unit tests only. **Not run for real**: Google refused the search tool on the free key. Off by default, with "verify links" as the fallback |
 | Loan and debt calculator | Built, tested against published loan-table values |
-| Plain-code tests (`npm test`) | 9 test files, all passing, no key needed |
+| Plain-code tests (`npm test`) | 10 test files, all passing, no key needed |
 | `tsc`, lint | Clean |
 | Deployed prototype | Version 3 is live. **Version 4 is not deployed yet**, and the live site has no AI key set until the owner adds `GEMINI_API_KEY` in Vercel |
 
@@ -83,6 +83,18 @@ What was built, what broke along the way, and how it was fixed. Everything below
     - shadcn added an unvetted package called `cn`. I replaced it with `clsx` and `tailwind-merge`.
     - On phones the OVEREASE button covered the "Get my application drafts" button. It now floats above the action bar.
 
+13. **Version 6: your own words, and the English coach.**
+    - Drafts open full screen with a fact check. Write-it-yourself mode asks personal questions, takes speech or writing in 11 languages, translates to English with word meanings, and coaches without rewriting. Pasting is off and an originality meter watches for drift toward the AI draft.
+    - An English coach scores five skills, keeps history and a streak, and adapts to earlier attempts.
+    - OVEREASE asks the student's language first and shows an English version of what they said.
+    - A next-best-step workflow names the one most useful action on every page.
+14. **Bugs found while building version 6, and fixed.**
+    - The writing coach sometimes wrote Hindi in Roman letters. The prompt now insists on native script, and 3 of 3 re-runs came back in Devanagari.
+    - The English coach was too kind: four real errors in 53 words still scored grammar 70. A code rule now caps grammar by error count, with tests.
+    - My first originality test expected a light paraphrase to pass. The code was right to flag it (26% of 4-word runs matched), so the test was wrong and was corrected.
+    - The write screen was 1,128 px wide on a phone because a scrolling row stretched its grid. Fixed with `min-w-0`, and a stamp animation that starts oversized is now clipped inside its card.
+    - The typical yearly costs on the country cards were too low for several countries against tuition plus the living-cost proofs they require. Canada, the UK, Australia, Ireland, the Netherlands and Singapore were raised. These are rough ranges from general knowledge, not live data.
+
 ## Measured results (manual runs, live API)
 
 | Check | Result |
@@ -102,6 +114,12 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 4, share link with a chosen draft | 6,266 characters. Opened with no saved data, read-only, name left out. A damaged copy showed the "could not be opened" page |
 | Version 4, exports | Calendar file valid (one confirmed date, one event). Word file is a real .docx with 1 yellow highlight, matching the 1 blank in that draft |
 | `scripts/verify-deploy.sh` against the local server | 14 of 14 checks passed |
+| Version 6, writing coach questions in Hindi | Three questions per section, built from the student's real project, in Devanagari |
+| Version 6, writing coach feedback | Flagged a cliché and a vague sentence by quoting the student's own words. Did not rewrite anything |
+| Version 6, translation Hindi to English | Faithful translation, a Hindi explanation, and four useful words with meanings |
+| Version 6, English coach on a 53-word answer with 4 real errors | Grammar held at 57 by the code cap, overall 73, four exact corrections, each quoting words the student wrote |
+| Version 6, fact check on a draft | 5 of 7 checks passed. It flagged the AI's "firsthand" and one blank to fill |
+| Version 6, paste into the editor | Blocked, with a message. The text was unchanged |
 | OVEREASE, typed question in Hindi and Tamil | Both answered in the right script. A made-up language name safely fell back to English |
 | OVEREASE, a Hindi sentence stating a budget | Proposed `budgetUsd` 50000 as a number. Applying is still the student's choice |
 | OVEREASE, a Hindi sentence naming a risk range | Proposed lowest `balanced` and highest `high` after the prompt fix |

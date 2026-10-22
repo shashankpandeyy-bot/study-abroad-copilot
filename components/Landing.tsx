@@ -335,7 +335,7 @@ export default function Landing() {
               <h2 id="journey" className="sr-only">
                 Journey
               </h2>
-              <Heading title="Eight stops. A stamp for every one." body="Pick a country, set a budget, check in, choose programs, pick a draft, find funding, plan the deadlines. Your rank rises as you go, from Tourist to Arrived." />
+              <Heading title="Nine stops. A stamp for every one." body="Pick a country, set a budget, check in, choose programs, pick a draft, practise your English, find funding, plan the deadlines. Your rank rises as you go, from Tourist to Arrived." />
               <ol className="mt-6 flex flex-wrap gap-2 text-sm">
                 {["Tourist", "Boarding", "In the air", "Landing", "Arrived"].map((r, i) => (
                   <li key={r} className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-ink">
@@ -393,7 +393,54 @@ export default function Landing() {
           </p>
         </section>
 
-        {/* 7. Final call */}
+        {/* 7. Your own words, and the English coach */}
+        <section className="border-y border-line bg-surface/60" aria-labelledby="own">
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 lg:px-8">
+            <Reveal>
+              <h2 id="own" className="sr-only">
+                Your own words
+              </h2>
+              <Heading title="Your words. Your voice. Just clearer." body="We do not hand you a statement to paste. We ask the right questions, you answer in the language you think in, and a coach helps you say it well in English." />
+            </Reveal>
+            <Reveal delay={0.1} className="mt-8 grid gap-4 md:grid-cols-2">
+              <div className="rounded-[10px] border border-line bg-surface p-6">
+                <p className="text-lg font-semibold text-ink">Write it yourself, with a coach</p>
+                <ul className="mt-3 space-y-2 text-tarmac">
+                  {[
+                    "Questions built from your own story, one section at a time",
+                    "Speak or write in your language, then see it in English with the hard words explained",
+                    "Pasting is switched off, and a meter shows if you drift toward the AI draft",
+                    "A fact check catches wrong grades, scores and other universities",
+                  ].map((t) => (
+                    <li key={t} className="flex gap-2">
+                      <Check className="mt-1 h-4 w-4 shrink-0 text-main" aria-hidden />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-[10px] border border-line bg-surface p-6">
+                <p className="text-lg font-semibold text-ink">An English coach that remembers you</p>
+                <ul className="mt-3 space-y-2 text-tarmac">
+                  {[
+                    "A score for grammar, vocabulary, clarity, structure and tone",
+                    "The exact words to fix, each with a short rule",
+                    "A streak and a progress line, so you can see yourself improving",
+                    "Feedback that builds on your earlier attempts",
+                  ].map((t) => (
+                    <li key={t} className="flex gap-2">
+                      <Check className="mt-1 h-4 w-4 shrink-0 text-main" aria-hidden />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs text-tarmac">Scored from your words only. Pronunciation is not judged, and this is a practice guide, not an IELTS result.</p>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 8. Final call */}
         <section className="bg-ink text-white">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-4 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div className="max-w-xl">

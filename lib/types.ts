@@ -161,7 +161,10 @@ export type Proposal = {
   reason: string;
 };
 
+export type EnglishView = { english: string; words: { english: string; meaning: string }[] };
+
 export type ChatMessage = {
+  english?: EnglishView; // the same message in English, shown to help the student learn it
   role: "user" | "assistant";
   text: string;
   proposals?: Proposal[];
@@ -170,3 +173,25 @@ export type ChatMessage = {
 
 export const MAX_QUESTION_ROUNDS = 2;
 export const MAX_SELECTED = 4;
+
+// ---------- Writing in your own words, and the English coach ----------
+
+export type OwnDraft = {
+  sections: Record<string, string>; // section key -> what the student wrote (English)
+  updatedAt: string; // ISO date-time
+};
+
+export const SKILLS = ["grammar", "vocabulary", "clarity", "structure", "tone"] as const;
+export type Skill = (typeof SKILLS)[number];
+export type SkillScores = Record<Skill, number>; // each 0 to 100
+
+export type CoachAttempt = {
+  id: string;
+  at: string; // ISO date-time
+  prompt: string;
+  words: number;
+  source: "typed" | "spoken";
+  scores: SkillScores;
+  overall: number; // worked out in code from the five scores
+  focus: string; // the one thing to practise next
+};

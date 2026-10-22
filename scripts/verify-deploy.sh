@@ -20,7 +20,7 @@ if echo "$health" | grep -q '"ai":"configured"'; then pass "AI key is configured
 echo "      grounding: $(echo "$health" | sed -n 's/.*"grounding":"\([a-z]*\)".*/\1/p')"
 
 # 2. Every page loads.
-for path in / /fly /fly/budget /profile /programs /applications /funding /plan /plan/shared /alumni; do
+for path in / /fly /fly/budget /profile /programs /applications /coach /draft /funding /plan /plan/shared /alumni; do
   code="$(status "$BASE$path")"
   # Pages that need saved data still return 200; they redirect inside the browser.
   if [ "$code" = "200" ]; then pass "GET $path"; else bad "GET $path returned $code"; fi
@@ -37,6 +37,12 @@ if [ "$code" = "404" ]; then pass "unknown page returns 404"; else bad "unknown 
 # 5. Bad input is refused politely (no AI call is made).
 code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -X POST -H "Content-Type: application/json" -d '{"profile":"nope"}' "$BASE/api/shortlist")"
 if [ "$code" = "400" ]; then pass "bad request is refused with 400"; else bad "bad request returned $code (expected 400)"; fi
+
+# 5a. The coach and translator refuse empty or too-short input politely, without calling the AI.
+code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -X POST -H "Content-Type: application/json" -d '{"answer":"hi"}' "$BASE/api/coach")"
+if [ "$code" = "400" ]; then pass "English coach refuses a too-short answer"; else bad "English coach returned $code for a short answer (expected 400)"; fi
+code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -X POST -H "Content-Type: application/json" -d '{"text":""}' "$BASE/api/translate")"
+if [ "$code" = "400" ]; then pass "translator refuses empty text"; else bad "translator returned $code for empty text (expected 400)"; fi
 
 # 5b. The voice guide answers in another language (typed text, no microphone needed).
 if [ "${SKIP_AI:-0}" != "1" ]; then

@@ -92,6 +92,12 @@ html {
   background: var(--concourse);
 }
 
+/* Nothing may widen the page sideways, not even an animation that starts oversized. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background: var(--concourse);
   color: var(--ink);
@@ -177,6 +183,7 @@ h3 {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.07 0 0 0 0 0.1 0 0 0 0 0.18 0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   border: 1px solid var(--line);
   border-radius: 6px;
+  overflow: hidden; /* a stamp that starts oversized must not push the page wider */
 }
 
 @keyframes stamp-in {

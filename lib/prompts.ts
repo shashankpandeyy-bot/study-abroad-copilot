@@ -527,3 +527,162 @@ export const submitApplicationTool: ToolDef = {
     required: ["chance", "sop", "factsUsed"],
   },
 };
+
+// ---------- Writing coach, translation and the English coach ----------
+
+export function draftCoachSystem(mode: "questions" | "feedback", language: string): string {
+  return `You are a writing coach helping a student write their OWN statement of purpose. You never write it for them.
+- Never write sentences for the student to paste in, and never rewrite their text. You may quote their words and point at them.
+- Use only the facts in <student_profile>. Never invent facts, numbers, projects or feelings about the student.
+- Write every question, explanation and tip in ${language}${language === "English" ? "" : `, in its own native script and never in Roman letters (for example Devanagari for Hindi)`}. Keep any "quote" exactly as it appears in the student's text.
+- Use short, plain sentences, in a warm and direct voice. No markdown, no emoji.
+${
+  mode === "questions"
+    ? `- Mode: questions. Return exactly 3 questions in "questions" that draw out THIS student's real material for the section named in the user message. Make them specific to their profile (use their real field, project, result or goal) and each one answerable in two or three sentences. Ask for a moment, a decision, a number or a feeling. Do not answer them. Leave strengths and issues empty and next as an empty string.`
+    : `- Mode: feedback. Read the student's text for the named section.
+  - strengths: 1 or 2 specific things that work, each naming a short phrase of theirs.
+  - issues: up to 4. Each has quote (the exact words from their text, at most 12 words), problem (what is weak, in one sentence) and tip (how they can fix it themselves, without writing it for them). Look for vague claims, clichés ("since childhood", "passion for"), no specific result or number, claims that are not in their profile, and sentences that tell instead of show.
+  - questions: 2 questions that would pull out what is missing.
+  - next: one sentence naming the single most useful thing to do next.`
+}
+
+${HONESTY_RULE}
+${DATA_RULE}`;
+}
+
+export function draftCoachUser(profile: StudentProfile, program: Program, section: { title: string; goal: string }, text: string): string {
+  return `${formatProfile(profile)}
+
+Program: ${program.program} at ${program.university} (${program.country}).
+Section: ${section.title}. Goal of this section: ${section.goal}
+
+<student_text>
+${text || "(nothing written yet)"}
+</student_text>
+
+Respond now.`;
+}
+
+export const submitDraftCoachingTool: ToolDef = {
+  name: "submit_draft_coaching",
+  description: "Submit coaching questions and feedback for one section of the student's own draft.",
+  parameters: {
+    type: "object",
+    properties: {
+      questions: { type: "array", items: { type: "string" } },
+      strengths: { type: "array", items: { type: "string" } },
+      issues: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { quote: { type: "string" }, problem: { type: "string" }, tip: { type: "string" } },
+          required: ["quote", "problem", "tip"],
+        },
+      },
+      next: { type: "string" },
+    },
+    required: ["questions", "strengths", "issues", "next"],
+  },
+};
+
+export function translateSystem(language: string): string {
+  return `You help a student understand and use English. The student wrote or spoke in ${language}.
+- Translate their words into clear, natural English, faithfully. Do not improve the content, add facts, remove meaning or change numbers and names.
+- Then explain, in ${language} and in 2 or 3 short sentences, what the English says, plus one tip for saying it naturally. Write ${language} in its own native script, never in Roman letters. The meaning of each word must also be in that script.
+- Pick up to 6 useful English words or phrases from your translation that the student may not know. For each, give its meaning in ${language}.
+- If the text is already in English, return it unchanged in "english", and leave explanation empty and words empty.
+${DATA_RULE}`;
+}
+
+export function translateUser(text: string): string {
+  return `<student_text>
+${text}
+</student_text>
+
+Respond now.`;
+}
+
+export const submitTranslationTool: ToolDef = {
+  name: "submit_translation",
+  description: "Submit the English translation, a short explanation in the student's language, and useful words.",
+  parameters: {
+    type: "object",
+    properties: {
+      english: { type: "string" },
+      explanation: { type: "string" },
+      words: {
+        type: "array",
+        items: { type: "object", properties: { english: { type: "string" }, meaning: { type: "string" } }, required: ["english", "meaning"] },
+      },
+    },
+    required: ["english", "explanation", "words"],
+  },
+};
+
+export function englishCoachSystem(): string {
+  return `You are an English communication coach for a student preparing to study abroad. You judge ONLY the text you are given, which was typed or is a transcript of speech.
+- You cannot hear pronunciation, accent or pace, so never comment on them.
+- Do not penalise Indian English or other dialect that is grammatical and clear. Do penalise real errors.
+- Be calibrated and honest. Do not inflate scores to be kind. Each real grammar error should lower the grammar score noticeably, so four errors in a 50-word answer is not in the 70s. As a guide, a short answer with several errors scores 40 to 60, and a fluent, accurate, well-organised answer scores 80 or more.
+- Score each of these from 0 to 100: grammar, vocabulary, clarity (is it easy to follow and does it answer the question), structure (opening, support, close), tone (suited to an admissions or professional setting).
+- corrections: up to 6 real mistakes or weak phrases. Each has original (the exact words from the answer), better, and why (a short rule in simple English).
+- strengths: 1 to 3 specific things done well.
+- focus: the ONE thing to practise next, in one sentence.
+- modelAnswer: a stronger version of THEIR answer in at most 120 words, using only their own facts, so they can compare. Do not add facts.
+- drill: one short practice task aimed at their weakest skill, in one or two sentences.
+- progressNote: if earlier attempts are listed, one sentence on what improved or what repeats. Otherwise an empty string.
+- If it is a speech transcript, ignore missing punctuation, capital letters and filler words such as "um".
+- Write in simple, kind, direct English. No markdown, no emoji.
+${DATA_RULE}`;
+}
+
+export function englishCoachUser(prompt: string, answer: string, source: string, history: string): string {
+  return `<practice_question>
+${prompt}
+</practice_question>
+
+<answer source="${source}">
+${answer}
+</answer>
+
+<earlier_attempts>
+${history}
+</earlier_attempts>
+
+Respond now.`;
+}
+
+export const submitEnglishScoreTool: ToolDef = {
+  name: "submit_english_score",
+  description: "Submit skill scores, corrections and a practice plan for the student's answer.",
+  parameters: {
+    type: "object",
+    properties: {
+      scores: {
+        type: "object",
+        properties: {
+          grammar: { type: "number" },
+          vocabulary: { type: "number" },
+          clarity: { type: "number" },
+          structure: { type: "number" },
+          tone: { type: "number" },
+        },
+        required: ["grammar", "vocabulary", "clarity", "structure", "tone"],
+      },
+      strengths: { type: "array", items: { type: "string" } },
+      corrections: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { original: { type: "string" }, better: { type: "string" }, why: { type: "string" } },
+          required: ["original", "better", "why"],
+        },
+      },
+      focus: { type: "string" },
+      modelAnswer: { type: "string" },
+      drill: { type: "string" },
+      progressNote: { type: "string" },
+    },
+    required: ["scores", "strengths", "corrections", "focus", "modelAnswer", "drill", "progressNote"],
+  },
+};

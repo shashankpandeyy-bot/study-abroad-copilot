@@ -11,7 +11,7 @@ export type Destination = {
   theme: { main: string; ink: string; tint: string };
   arcY: number; // where the arc lands in the 320x120 map strip
   vibe: string; // a few words on what the place is known for
-  typicalUsd: [number, number]; // rough yearly total (tuition plus living). Illustration only.
+  typicalUsd: [number, number]; // rough yearly total (tuition plus living) for a master's degree. Illustration only: checked against general knowledge in October 2026, not live data.
   intakes: string; // the usual intake months
 };
 
@@ -33,7 +33,7 @@ export const DESTINATIONS: Destination[] = [
     currency: { code: "CAD", symbol: "C$", perInr: 0.0165 },
     theme: { main: "#c8102e", ink: "#5a0614", tint: "#fde8eb" }, arcY: 22,
   
-    vibe: "Welcoming, with post-study work routes", typicalUsd: [22000, 38000], intakes: "Sep, Jan and May",
+    vibe: "Welcoming, with post-study work routes", typicalUsd: [26000, 44000], intakes: "Sep, Jan and May",
   },
   {
     code: "US", name: "USA", city: "Boston", airport: "BOS", gate: "21", hours: 16,
@@ -49,7 +49,7 @@ export const DESTINATIONS: Destination[] = [
     currency: { code: "GBP", symbol: "£", perInr: 0.009 },
     theme: { main: "#5b2a86", ink: "#2e1445", tint: "#f0e8f8" }, arcY: 36,
   
-    vibe: "One-year degrees and global names", typicalUsd: [30000, 48000], intakes: "Sep and Jan",
+    vibe: "One-year degrees and global names", typicalUsd: [34000, 56000], intakes: "Sep and Jan",
   },
   {
     code: "AU", name: "Australia", city: "Melbourne", airport: "MEL", gate: "16", hours: 12,
@@ -57,7 +57,7 @@ export const DESTINATIONS: Destination[] = [
     currency: { code: "AUD", symbol: "A$", perInr: 0.0183 },
     theme: { main: "#0f6e6e", ink: "#06393a", tint: "#def3f2" }, arcY: 100,
   
-    vibe: "Sun, campus life and work rights", typicalUsd: [32000, 50000], intakes: "Feb and Jul",
+    vibe: "Sun, campus life and work rights", typicalUsd: [38000, 52000], intakes: "Feb and Jul",
   },
   {
     code: "IE", name: "Ireland", city: "Dublin", airport: "DUB", gate: "09", hours: 10,
@@ -65,7 +65,7 @@ export const DESTINATIONS: Destination[] = [
     currency: { code: "EUR", symbol: "€", perInr: 0.0108 },
     theme: { main: "#13763a", ink: "#08331a", tint: "#e0f3e7" }, arcY: 34,
   
-    vibe: "Europe tech hub, English-speaking", typicalUsd: [24000, 36000], intakes: "Sep",
+    vibe: "Europe tech hub, English-speaking", typicalUsd: [29000, 44000], intakes: "Sep",
   },
   {
     code: "NL", name: "Netherlands", city: "Amsterdam", airport: "AMS", gate: "18", hours: 9,
@@ -73,7 +73,7 @@ export const DESTINATIONS: Destination[] = [
     currency: { code: "EUR", symbol: "€", perInr: 0.0108 },
     theme: { main: "#b34f00", ink: "#4a2100", tint: "#fdeedd" }, arcY: 38,
   
-    vibe: "Cycling, canals and English-taught degrees", typicalUsd: [22000, 34000], intakes: "Sep and Feb",
+    vibe: "Cycling, canals and English-taught degrees", typicalUsd: [24000, 38000], intakes: "Sep and Feb",
   },
   {
     code: "SG", name: "Singapore", city: "Singapore", airport: "SIN", gate: "02", hours: 5.5,
@@ -81,7 +81,7 @@ export const DESTINATIONS: Destination[] = [
     currency: { code: "SGD", symbol: "S$", perInr: 0.0153 },
     theme: { main: "#a4133c", ink: "#4a0a1c", tint: "#fbe6ec" }, arcY: 96,
   
-    vibe: "Asia gateway, top-ranked and compact", typicalUsd: [26000, 42000], intakes: "Aug and Jan",
+    vibe: "Asia gateway, top-ranked and compact", typicalUsd: [33000, 52000], intakes: "Aug and Jan",
   },
 ];
 

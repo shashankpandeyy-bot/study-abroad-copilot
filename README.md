@@ -135,7 +135,19 @@ Real problems found while building, and what the app does about them.
 - **New layout.** A sidebar journey (eight stops with a rank that rises as you go), a trip strip across the top, a bottom tab bar on phones, and wider pages. The landing page is a scroll story.
 - **Reference-inspired screens.** A boarding-pass country picker with a route arc, a Wise-style conversion card, an intake calendar coloured by time to prepare, city skyline cards, a split-flap board for the shortlist and the next deadlines, and passport stamps for milestones.
 
+## Version 6 additions
+
+- **Full-screen drafts.** Each draft opens in a full-screen workspace with a live **fact check**: it compares the draft with what you told us (the right university, no other university named, your grade, your English test and score, numbers and wording you never gave, blanks, length). Where the right answer is certain (a wrong grade, a wrong score, another university's name) it offers a one-click correction. These checks are plain code, not AI.
+- **Write it yourself, with a coach.** A guided mode splits the statement into six parts. For each part the AI asks questions built from your own profile, you answer in the language you think in (speaking or typing), and you can see your words in English with the hard words explained. Then you write the English yourself. The coach points at specific words in your text and asks questions, but never writes or rewrites it. Pasting is switched off, and an originality meter compares your text with the AI draft and warns if you drift toward it.
+- **English coach.** Practise a question by typing or speaking and get five scores (grammar, vocabulary, clarity, structure, tone), the exact words to fix with a rule for each, a stronger version to compare with, and one thing to practise next. It keeps a history, a daily streak and a progress line, and its feedback builds on your earlier attempts. The overall number and a cap on the grammar score are worked out in code, so a few real errors cannot still score high. Scores come from your words only. Pronunciation is not judged, and the level shown is a rough guide, not an IELTS or CEFR result.
+- **OVEREASE asks your language first,** and when you speak or write in it, shows what you said in English with word meanings.
+- **Next best step.** A plain-code workflow reads your whole journey and names the one most useful next action, with the reason, on every page.
+
 ## Known gaps
+
+- **The writing coach and English coach are AI judgement.** They are checked in code (quotes must really appear in your text, scores must be in range, the grammar score is capped by the error count), but they can still be wrong or too kind. Treat them as a practice partner, not an examiner.
+- **Originality is a word-overlap check,** not plagiarism detection. It only compares your text with this app's AI draft.
+- **Translations are AI translations.** Check anything important with someone you trust.
 
 - **Voice is only partly verified.** Typed Hindi and Tamil questions were tested against the live AI and came back in the right script. The microphone itself, and spoken replies, were not tested with real speech, and some browsers (such as Firefox) cannot listen at all. Indian-language voices for reading aloud are missing on some devices.
 - **The rupee figures are estimates at a fixed sample rate**, and the typical yearly costs on the country cards are rough ranges for illustration, not quotes.
@@ -207,6 +219,11 @@ lib/money.ts          USD and INR display (one sample rate)
 lib/risk.ts           risk range helpers
 lib/languages.ts      the languages OVEREASE can listen to and answer in
 lib/countries.ts      the eight destinations, their themes and sample costs
+lib/draftcheck.ts      fact check for a draft, with safe one-click fixes
+lib/originality.ts    how much of your text matches the AI draft
+lib/coach.ts          English coach scoring maths, streaks and trends
+lib/nextAction.ts     the next-best-step workflow
+lib/sopSections.ts    the six parts of a statement
 lib/ai.ts             the only file that talks to Gemini (retry, errors, structured output)
 lib/prompts.ts        what the AI is asked, and the data shapes it must answer in
 lib/validate.ts       input cleaning and checks on every AI reply

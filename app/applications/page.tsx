@@ -173,6 +173,14 @@ export default function ApplicationsPage() {
                       />
                     </div>
                   </details>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Link href={`/draft?id=${p.id}`} className={btnSecondary + " w-full"}>
+                      Open full screen
+                    </Link>
+                    <Link href={`/draft?id=${p.id}&mode=write`} className={btnSecondary + " w-full"}>
+                      {Object.values(state.ownDrafts[p.id]?.sections ?? {}).some(Boolean) ? "Continue my own draft" : "Write it myself"}
+                    </Link>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"

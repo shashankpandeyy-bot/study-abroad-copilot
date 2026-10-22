@@ -19,7 +19,9 @@ import {
   THESIS_PREFERENCES,
   WORK_YEARS,
 } from "./options";
+import { languageNameOrEnglish } from "./languages";
 import { FIELD_LABELS } from "./profileFields";
+import { SOP_SECTIONS } from "./sopSections";
 import type {
   AlumniResponse,
   ApplicationPackage,
@@ -31,10 +33,12 @@ import type {
   Proposal,
   QA,
   Scholarship,
+  SkillScores,
   StudentProfile,
   WhatIfNote,
   WhatIfResponse,
 } from "./types";
+import { SKILLS } from "./types";
 
 const MAX_ANSWERS = 10;
 
@@ -439,5 +443,128 @@ export function parseInsightInput(raw: unknown): Insight {
     strengths,
     gaps,
     cost: { tuitionLowUsd, tuitionHighUsd, livingLowUsd, livingHighUsd, years, notes: str(cost.notes, 400) },
+  };
+}
+
+// ---------- Writing coach, translation and English coach ----------
+
+export type DraftCoachInput = {
+  mode: "questions" | "feedback";
+  section: (typeof SOP_SECTIONS)[number];
+  text: string;
+  language: string;
+};
+
+export function parseDraftCoachInput(body: Record<string, unknown>): DraftCoachInput {
+  const mode = body.mode === "questions" ? "questions" : body.mode === "feedback" ? "feedback" : null;
+  if (!mode) throw new BadRequestError("Unknown coaching mode.");
+  const section = SOP_SECTIONS.find((s) => s.key === body.section);
+  if (!section) throw new BadRequestError("Unknown draft section.");
+  const text = str(body.text, 2500);
+  if (mode === "feedback" && wordCount(text) < 15) {
+    throw new BadRequestError("Write at least 15 words first, then ask for feedback.");
+  }
+  return { mode, section, text, language: languageNameOrEnglish(body.language) };
+}
+
+export type DraftCoaching = {
+  questions: string[];
+  strengths: string[];
+  issues: { quote: string; problem: string; tip: string }[];
+  next: string;
+};
+
+const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+
+// An issue is only kept if the words it quotes are really in the student's text.
+export function parseDraftCoaching(raw: unknown, studentText: string, mode: "questions" | "feedback"): DraftCoaching {
+  if (!isObj(raw)) throw new BadAnswerError("The coach returned something unexpected. Please try again.");
+  const mine = norm(studentText);
+  const issues = (Array.isArray(raw.issues) ? raw.issues : [])
+    .filter(isObj)
+    .map((i) => ({ quote: str(i.quote, 200), problem: str(i.problem, 300), tip: str(i.tip, 400) }))
+    .filter((i) => i.problem && i.tip && (!i.quote || mine.includes(norm(i.quote))))
+    .slice(0, 4);
+  const out = {
+    questions: strList(raw.questions, 3, 300),
+    strengths: strList(raw.strengths, 2, 300),
+    issues: mode === "questions" ? [] : issues,
+    next: str(raw.next, 300),
+  };
+  if (mode === "questions" && out.questions.length === 0) throw new BadAnswerError("The coach returned no questions. Please try again.");
+  if (mode === "feedback" && out.issues.length === 0 && out.strengths.length === 0 && !out.next) {
+    throw new BadAnswerError("The coach returned no feedback. Please try again.");
+  }
+  return out;
+}
+
+export function parseTranslateInput(body: Record<string, unknown>): { text: string; language: string } {
+  const text = str(body.text, 2000);
+  if (!text) throw new BadRequestError("There is nothing to translate.");
+  return { text, language: languageNameOrEnglish(body.language) };
+}
+
+export type Translation = { english: string; explanation: string; words: { english: string; meaning: string }[] };
+
+export function parseTranslation(raw: unknown): Translation {
+  if (!isObj(raw)) throw new BadAnswerError("The translation came back in an unexpected shape. Please try again.");
+  const english = str(raw.english, 4000);
+  if (!english) throw new BadAnswerError("The translation was empty. Please try again.");
+  const words = (Array.isArray(raw.words) ? raw.words : [])
+    .filter(isObj)
+    .map((w) => ({ english: str(w.english, 80), meaning: str(w.meaning, 160) }))
+    .filter((w) => w.english && w.meaning)
+    .slice(0, 6);
+  return { english, explanation: str(raw.explanation, 700), words };
+}
+
+export type CoachInput = { prompt: string; answer: string; source: "typed" | "spoken"; history: string };
+
+export const MIN_COACH_WORDS = 25;
+
+export function parseCoachInput(body: Record<string, unknown>): CoachInput {
+  const answer = str(body.answer, 2000);
+  if (wordCount(answer) < MIN_COACH_WORDS) {
+    throw new BadRequestError(`Write or say at least ${MIN_COACH_WORDS} words so the coach has something to score.`);
+  }
+  const prompt = str(body.prompt, 300) || "Tell me about yourself and why you want to study abroad.";
+  return { prompt, answer, source: body.source === "spoken" ? "spoken" : "typed", history: str(body.history, 900) };
+}
+
+export type CoachResult = {
+  scores: SkillScores;
+  strengths: string[];
+  corrections: { original: string; better: string; why: string }[];
+  focus: string;
+  modelAnswer: string;
+  drill: string;
+  progressNote: string;
+};
+
+export function parseCoachScore(raw: unknown, answer: string): CoachResult {
+  if (!isObj(raw) || !isObj(raw.scores)) throw new BadAnswerError("The coach returned scores in an unexpected shape. Please try again.");
+  const scores = {} as SkillScores;
+  for (const s of SKILLS) {
+    const n = toNumber((raw.scores as Record<string, unknown>)[s], 0, 100);
+    if (n == null) throw new BadAnswerError("The coach returned a score that was missing or out of range. Please try again.");
+    scores[s] = Math.round(n);
+  }
+  const mine = norm(answer);
+  // A correction must quote words the student really used, so the coach cannot invent mistakes.
+  const corrections = (Array.isArray(raw.corrections) ? raw.corrections : [])
+    .filter(isObj)
+    .map((c) => ({ original: str(c.original, 200), better: str(c.better, 250), why: str(c.why, 300) }))
+    .filter((c) => c.original && c.better && c.why && mine.includes(norm(c.original)) && norm(c.original) !== norm(c.better))
+    .slice(0, 6);
+  const focus = str(raw.focus, 300);
+  if (!focus) throw new BadAnswerError("The coach did not say what to practise next. Please try again.");
+  return {
+    scores,
+    strengths: strList(raw.strengths, 3, 300),
+    corrections,
+    focus,
+    modelAnswer: str(raw.modelAnswer, 1200),
+    drill: str(raw.drill, 400),
+    progressNote: str(raw.progressNote, 300),
   };
 }

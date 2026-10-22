@@ -81,7 +81,7 @@ export default function IntakePage() {
         </p>
       </header>
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
-      <div>
+      <div className="min-w-0">
 
       {busy && (
         <div

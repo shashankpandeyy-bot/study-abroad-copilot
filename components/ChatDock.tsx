@@ -7,7 +7,7 @@ import { errorText, post } from "@/lib/api";
 import { DEFAULT_LANGUAGE, LANGUAGES, languageByCode } from "@/lib/languages";
 import { applyProposal, displayValue } from "@/lib/profileFields";
 import { useApp } from "@/lib/state";
-import type { ChatMessage, Proposal } from "@/lib/types";
+import type { ChatMessage, EnglishView, Proposal } from "@/lib/types";
 import { btnPrimary, btnSmall } from "@/lib/ui";
 
 const PAGE_NAMES: Record<string, string> = {
@@ -81,6 +81,15 @@ export default function ChatDock() {
       return true;
     }
   });
+  // Until the student has chosen a language once, OVEREASE asks which one they are comfortable in.
+  const [chosenOnce, setChosenOnce] = useState(() => {
+    try {
+      return typeof window === "undefined" ? true : localStorage.getItem(LANG_KEY) !== null;
+    } catch {
+      return true;
+    }
+  });
+  const [translating, setTranslating] = useState<number | null>(null);
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
   const [canListen] = useState(() => Boolean(recognitionCtor()));
@@ -122,6 +131,21 @@ export default function ChatDock() {
     [speak, lang]
   );
 
+  // Shows a message in English, with the hard words explained, so the student understands and can learn it.
+  async function showEnglish(index: number, text: string) {
+    if (lang.code === "en") return;
+    setTranslating(index);
+    try {
+      const res = await post<EnglishView & { explanation: string }>("/api/translate", { text, language: lang.name });
+      const view: EnglishView = { english: res.english, words: res.words };
+      set((prev) => ({ chat: prev.chat.map((m, j) => (j === index ? { ...m, english: view } : m)) }));
+    } catch {
+      /* the translation is a bonus, so a failure is quiet */
+    } finally {
+      setTranslating((t) => (t === index ? null : t));
+    }
+  }
+
   async function send(override?: string) {
     const text = (override ?? input).trim();
     if (!text || busy) return;
@@ -130,6 +154,8 @@ export default function ChatDock() {
     set({ chat: history, chatDraft: "" });
     setBusy(true);
     setError("");
+    // Runs alongside the reply: what the student said, in English.
+    void showEnglish(history.length - 1, text);
     try {
       const res = await post<{ message: string; proposals: Proposal[] }>("/api/chat", {
         profile: state.profile,
@@ -201,6 +227,7 @@ export default function ChatDock() {
   }
 
   function chooseLanguage(code: string) {
+    setChosenOnce(true);
     setLangCode(code);
     window.speechSynthesis?.cancel();
     try {
@@ -289,6 +316,29 @@ export default function ChatDock() {
         </button>
       </div>
 
+      {!chosenOnce ? (
+        <div className="flex-1 overflow-y-auto px-4 py-5">
+          <h3 className="text-lg font-semibold text-ink">Which language are you most comfortable in?</h3>
+          <p className="mt-1 text-sm text-tarmac">
+            Speak or write to me in it. I will answer in the same language, and show you what you said in English so you can learn the words.
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => chooseLanguage(l.code)}
+                className="min-h-14 rounded-[10px] border border-line bg-surface px-3 py-2 text-left transition-colors hover:border-main hover:bg-main-tint"
+              >
+                <span className="block text-base font-semibold text-ink" lang={l.code}>
+                  {l.native}
+                </span>
+                <span className="block text-xs text-tarmac">{l.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-[15px]">
         {state.chat.length === 0 && (
           <div className="space-y-3">
@@ -318,6 +368,29 @@ export default function ChatDock() {
             >
               {m.text}
             </div>
+            {lang.code !== "en" && (
+              <div className={`mt-1 ${m.role === "user" ? "text-right" : ""}`}>
+                {m.english ? (
+                  <div className="inline-block max-w-[92%] rounded-xl border border-line bg-surface px-3 py-2 text-left text-sm">
+                    <p className="text-xs font-medium text-tarmac">In English</p>
+                    <p className="text-ink">{m.english.english}</p>
+                    {m.english.words.length > 0 && (
+                      <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                        {m.english.words.map((w) => (
+                          <li key={w.english} className="rounded-full bg-concourse px-2 py-0.5 text-xs">
+                            <span className="font-medium text-ink">{w.english}</span> <span className="text-tarmac" lang={lang.code}>{w.meaning}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => showEnglish(i, m.text)} disabled={translating === i} className="text-xs font-medium text-jet-deep underline">
+                    {translating === i ? "Translating..." : "Show in English"}
+                  </button>
+                )}
+              </div>
+            )}
             {m.proposals?.map((p, j) => {
               const st = m.proposalState?.[j] ?? "pending";
               const shown = displayValue({ ...state.profile, [p.field]: p.value }, p.field);
@@ -366,6 +439,7 @@ export default function ChatDock() {
         )}
         <div ref={endRef} />
       </div>
+      )}
 
       <form
         className="flex items-end gap-2 border-t border-line p-3"

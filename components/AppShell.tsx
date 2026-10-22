@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   CalendarCheck,
   Check,
   ClipboardCheck,
@@ -8,7 +9,9 @@ import {
   FileText,
   GraduationCap,
   HandCoins,
+  Languages,
   Plane,
+  Sparkles,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -18,13 +21,14 @@ import type { ComponentType } from "react";
 import Flag from "@/components/Flag";
 import { destinationFor } from "@/lib/countries";
 import { dual } from "@/lib/money";
+import { nextAction } from "@/lib/nextAction";
 import { riskRangeText } from "@/lib/risk";
 import { useApp } from "@/lib/state";
 import { profileStrength } from "@/lib/strength";
 
 type Stop = { href: string; label: string; short: string; icon: ComponentType<{ className?: string }>; done: boolean };
 
-const RANKS = ["Tourist", "Boarding", "Boarding", "In the air", "In the air", "In the air", "Landing", "Landing", "Arrived"];
+const RANKS = ["Tourist", "Boarding", "Boarding", "In the air", "In the air", "In the air", "Landing", "Landing", "Landing", "Arrived"];
 
 function useStops() {
   const { state } = useApp();
@@ -36,6 +40,7 @@ function useStops() {
     { href: "/profile", label: "Your profile", short: "Profile", icon: UserRound, done: Boolean(state.shortlist) },
     { href: "/programs", label: "Pick programs", short: "Programs", icon: GraduationCap, done: state.selected.length > 0 },
     { href: "/applications", label: "Choose a draft", short: "Drafts", icon: FileText, done: Boolean(state.chosenId) },
+    { href: "/coach", label: "Practise English", short: "Coach", icon: Languages, done: state.coach.length > 0 },
     { href: "/funding", label: "Find funding", short: "Funding", icon: HandCoins, done: state.savedScholarships.length > 0 },
     { href: "/plan", label: "Plan and deadlines", short: "Plan", icon: CalendarCheck, done: state.tasks.some((t) => t.done) },
   ];
@@ -45,6 +50,30 @@ function useStops() {
 function isStarted(state: ReturnType<typeof useApp>["state"], hasQuery: boolean) {
   return Boolean(
     state.shortlist || state.questions.length > 0 || hasQuery || state.profile.countries || state.profile.field || state.profile.fullName
+  );
+}
+
+function NextStep() {
+  const { state } = useApp();
+  const pathname = usePathname();
+  const today = new Date().toISOString().slice(0, 10);
+  const a = nextAction(state, today);
+  // Already on the page it points to: no need to say it twice.
+  if (a.href.split("?")[0] === pathname) return null;
+  const tone = a.tone === "watch" ? "border-amber-600/40 bg-amber-50" : a.tone === "done" ? "border-emerald-600/40 bg-emerald-50" : "border-main/30 bg-main-tint";
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 pt-4 lg:px-8 print:hidden">
+      <div className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border p-3 sm:px-4 ${tone}`}>
+        <Sparkles className="h-4 w-4 shrink-0 text-main" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-ink">{a.title}</p>
+          <p className="text-sm text-tarmac">{a.body}</p>
+        </div>
+        <Link href={a.href} className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-[10px] bg-ink px-4 text-sm font-medium text-white hover:bg-ink/85">
+          {a.cta} <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -95,6 +124,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const hasQuery = hydrated && typeof window !== "undefined" && /[?&](step|demo)=/.test(window.location.search);
   const landing = pathname === "/" && hydrated && !isStarted(state, hasQuery);
   const shared = pathname.startsWith("/plan/shared");
+  const focus = pathname.startsWith("/draft");
 
   function startOver() {
     if (window.confirm("Start over? This clears your profile, shortlist, drafts and chat from this browser.")) {
@@ -102,6 +132,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       router.push("/");
     }
   }
+
+  // The draft workspace is full screen and has its own top bar.
+  if (focus && hydrated) return <div className="flex flex-1 flex-col">{children}</div>;
 
   // The landing page and shared plans have no app chrome. Everything else gets the sidebar and tab bar.
   if (landing || shared || !hydrated) {
@@ -145,10 +178,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-4 rounded-[10px] bg-ink p-3 text-white">
           <p className="text-xs text-white/70">Your rank</p>
           <p className="num text-[15px] text-flap">{rank}</p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-valuemin={0} aria-valuemax={8} aria-valuenow={done} aria-label="Journey progress">
-            <div className="h-full rounded-full bg-flap transition-[width] duration-500" style={{ width: `${(done / 8) * 100}%` }} />
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-valuemin={0} aria-valuemax={stops.length} aria-valuenow={done} aria-label="Journey progress">
+            <div className="h-full rounded-full bg-flap transition-[width] duration-500" style={{ width: `${(done / stops.length) * 100}%` }} />
           </div>
-          <p className="mt-1.5 text-xs text-white/70">{done} of 8 stops done</p>
+          <p className="mt-1.5 text-xs text-white/70">{done} of {stops.length} stops done</p>
         </div>
 
         <nav className="mt-4 flex-1 overflow-y-auto px-3 pb-4">
@@ -214,15 +247,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-0 flex-1 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pl-64">
         <TripStrip />
+        <NextStep />
         <div className="flex flex-1 flex-col">{children}</div>
       </div>
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden print:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden print:hidden"
       >
         {stops
-          .filter((s) => ["/fly", "/profile", "/programs", "/applications", "/funding", "/plan"].includes(s.href))
+          .filter((s) => ["/fly", "/profile", "/programs", "/applications", "/coach", "/funding", "/plan"].includes(s.href))
           .map((s) => {
             const on = pathname === s.href || (s.href === "/fly" && (pathname === "/" || pathname === "/fly/budget"));
             const Icon = s.icon;

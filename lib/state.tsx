@@ -7,8 +7,10 @@ import type {
   AlumniResponse,
   ApplicationPackage,
   ChatMessage,
+  CoachAttempt,
   FactsResult,
   Insight,
+  OwnDraft,
   Program,
   QA,
   ScholarshipResponse,
@@ -41,6 +43,8 @@ export type AppState = {
   insights: Record<string, Insight>;
   facts: Record<string, FactsResult>;
   tasks: Task[];
+  ownDrafts: Record<string, OwnDraft>;
+  coach: CoachAttempt[];
   chat: ChatMessage[];
   chatOpen: boolean;
   chatDraft: string;
@@ -63,6 +67,8 @@ const INITIAL: AppState = {
   insights: {},
   facts: {},
   tasks: [],
+  ownDrafts: {},
+  coach: [],
   chat: [],
   chatOpen: false,
   chatDraft: "",

@@ -4,7 +4,7 @@ import { escapeRegExp, normalizeNumber } from "@/lib/checks";
 import type { ApplicationPackage, Program } from "@/lib/types";
 import { bandStyle, btnSecondary } from "@/lib/ui";
 
-function MarkedText({
+export function MarkedText({
   text,
   flagged,
   phrases,
