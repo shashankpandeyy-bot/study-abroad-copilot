@@ -5,33 +5,38 @@
 @custom-variant dark (&:is(.dark *));
 
 /* OVEREASE design tokens. Six named colours, two typefaces, three radii. */
+/* OVEREASE design tokens: a Spotify-style black theme. Pure black base, charcoal panels, white text,
+   a green primary action, and the chosen country's colour as the glow at the top of every page. */
 :root {
-  --concourse: #eef1f5;
-  --ink: #111b2e;
-  --jet: #2347e0;
+  color-scheme: dark;
+  --black: #000000;
+  --concourse: #121212; /* panel background */
+  --ink: #ffffff; /* main text */
+  --jet: #1ed760; /* primary action green */
   --flap: #ffb000;
-  --stamp: #c2253b;
-  --tarmac: #566074;
-  --surface: #ffffff;
-  --line: rgb(17 27 46 / 0.14);
+  --stamp: #ff6b81;
+  --tarmac: #b3b3b3; /* secondary text */
+  --surface: #181818; /* cards */
+  --surface-2: #282828; /* hovered cards */
+  --line: rgb(255 255 255 / 0.12);
 
-  /* The chosen country re-themes these three. Neutral until a country is picked. */
-  --c-main: #2347e0;
-  --c-ink: #0f1e5a;
-  --c-tint: #e4e9fb;
+  /* The chosen country re-themes these three. Neutral green until a country is picked. */
+  --c-main: #1ed760;
+  --c-ink: #d6ffe6;
+  --c-tint: #12301e;
 
   /* shadcn/ui reads these, so its parts follow the same theme */
   --background: var(--concourse);
   --foreground: var(--ink);
   --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: var(--surface);
+  --popover: var(--surface-2);
   --popover-foreground: var(--ink);
   --primary: var(--jet);
-  --primary-foreground: #ffffff;
-  --secondary: #e3e8ef;
+  --primary-foreground: #000000;
+  --secondary: #2a2a2a;
   --secondary-foreground: var(--ink);
-  --muted: #dfe5ee;
+  --muted: #3a3a3a;
   --muted-foreground: var(--tarmac);
   --accent: var(--c-tint);
   --accent-foreground: var(--c-ink);
@@ -65,11 +70,13 @@
   --color-concourse: var(--concourse);
   --color-ink: var(--ink);
   --color-jet: var(--jet);
-  --color-jet-deep: #1a37b4;
-  --color-jet-tint: #e4e9fb;
+  --color-jet-deep: #3be477;
+  --color-jet-tint: rgb(30 215 96 / 0.15);
   --color-flap: var(--flap);
   --color-stamp: var(--stamp);
-  --color-stamp-tint: #fbe9ec;
+  --color-stamp-tint: rgb(255 107 129 / 0.14);
+  --color-board: var(--black);
+  --color-surface-2: var(--surface-2);
   --color-tarmac: var(--tarmac);
   --color-surface: var(--surface);
   --color-line: var(--line);
@@ -77,9 +84,9 @@
   --color-main-ink: var(--c-ink);
   --color-main-tint: var(--c-tint);
 
-  --font-sans: var(--font-instrument), system-ui, sans-serif;
+  --font-sans: var(--font-app), system-ui, sans-serif;
   --font-mono: var(--font-martian), ui-monospace, monospace;
-  --font-heading: var(--font-instrument), system-ui, sans-serif;
+  --font-heading: var(--font-app), system-ui, sans-serif;
 
   /* Radii: 4 for passes, 10 for controls, full for chips */
   --radius-sm: 4px;
@@ -89,7 +96,7 @@
 }
 
 html {
-  background: var(--concourse);
+  background: var(--black);
 }
 
 /* Nothing may widen the page sideways, not even an animation that starts oversized. */
@@ -99,9 +106,9 @@ body {
 }
 
 body {
-  background: var(--concourse);
+  background: var(--black);
   color: var(--ink);
-  font-family: var(--font-instrument), system-ui, sans-serif;
+  font-family: var(--font-app), system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -152,16 +159,17 @@ h3 {
 
 /* Departures board: the only dark surface */
 .board {
-  background: var(--ink);
+  background: #000;
   color: #fff;
-  border-radius: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
 }
 .flap {
   display: inline-block;
   min-width: 1ch;
   padding: 0 0.12em;
   margin-right: 1px;
-  background: #1d2a44;
+  background: #1c1c1c;
   color: var(--flap);
   border-radius: 2px;
   position: relative;
@@ -179,8 +187,8 @@ h3 {
 
 /* Passport paper: a cool pale page with fine grain, like a visa page. */
 .paper {
-  background-color: #f1f4f8;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.07 0 0 0 0 0.1 0 0 0 0 0.18 0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-color: #1b1b1b;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   border: 1px solid var(--line);
   border-radius: 6px;
   overflow: hidden; /* a stamp that starts oversized must not push the page wider */
@@ -247,6 +255,15 @@ h3 {
 
 /* Print a single draft as a clean page ("Save as PDF" in the print dialog). */
 @media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .print-area,
+  .print-area * {
+    color: #000 !important;
+  }
   body * {
     visibility: hidden !important;
   }

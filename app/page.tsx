@@ -13,7 +13,7 @@ import type { QA, ShortlistResponse, StudentProfile } from "@/lib/types";
 import { btnSecondary, cardClass } from "@/lib/ui";
 
 export default function IntakePage() {
-  const { state, hydrated, set } = useApp();
+  const { state, hydrated, set, track } = useApp();
   const router = useRouter();
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -44,6 +44,7 @@ export default function IntakePage() {
           scholarships: {},
           alumni: {},
         });
+        track("checkin");
         router.push("/profile");
       }
     } catch (e) {
@@ -95,13 +96,13 @@ export default function IntakePage() {
       )}
 
       {error && (
-        <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div role="alert" className="mb-4 rounded-lg border border-red-400/40 bg-red-500/15 p-3 text-sm text-red-300">
           {error}
         </div>
       )}
 
       {state.shortlist && !inFollowUps && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-white p-3 text-sm text-ink">
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-3 text-sm text-ink">
           You already have a shortlist. Changing your answers below will make a new one.
           <Link href="/profile" className={btnSecondary + " !px-3 !py-1.5"}>
             Back to my profile

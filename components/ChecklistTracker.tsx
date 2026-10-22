@@ -6,7 +6,9 @@ import { btnSmall } from "@/lib/ui";
 
 const KIND = { document: "Document", milestone: "Milestone", deadline: "Deadline" } as const;
 
-export const effectiveDate = (t: Task) => t.confirmedDate || t.suggestedDate;
+import { effectiveTaskDate } from "@/lib/taskDates";
+
+export const effectiveDate = effectiveTaskDate;
 
 export default function ChecklistTracker({
   tasks,
@@ -67,10 +69,12 @@ export default function ChecklistTracker({
                         {KIND[t.kind]}
                         {t.confirmedDate
                           ? " · date confirmed by you"
-                          : t.suggestedDate
+                          : t.plannedDate
+                            ? ` · planned for ${t.plannedDate}, worked back from your deadline`
+                            : t.suggestedDate
                             ? ` · typical timing ${t.suggestedDate} (not an official date)`
                             : " · pick an intake term for a suggested date"}
-                        {overdue && <span className="ml-2 rounded bg-rose-100 px-1.5 py-0.5 font-medium text-rose-800">Past due</span>}
+                        {overdue && <span className="ml-2 rounded bg-rose-500/20 px-1.5 py-0.5 font-medium text-rose-300">Past due</span>}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -79,11 +83,11 @@ export default function ChecklistTracker({
                         value={t.confirmedDate}
                         onChange={(e) => onUpdate(t.id, { confirmedDate: e.target.value })}
                         aria-label={`Confirmed date for: ${t.label}`}
-                        className="rounded-lg border border-line px-2 py-1.5 text-sm"
+                        className="rounded-lg border border-line bg-surface px-2 py-1.5 text-sm text-ink"
                       />
-                      {t.suggestedDate && !t.confirmedDate && (
-                        <button type="button" className={btnSmall} onClick={() => onUpdate(t.id, { confirmedDate: t.suggestedDate })}>
-                          Use typical date
+                      {(t.plannedDate || t.suggestedDate) && !t.confirmedDate && (
+                        <button type="button" className={btnSmall} onClick={() => onUpdate(t.id, { confirmedDate: t.plannedDate || t.suggestedDate })}>
+                          {t.plannedDate ? "Use planned date" : "Use typical date"}
                         </button>
                       )}
                     </div>

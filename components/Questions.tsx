@@ -38,7 +38,7 @@ export default function Questions({
             onChange={(e) =>
               setAnswers((prev) => prev.map((a, j) => (j === i ? e.target.value : a)))
             }
-            className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-jet focus:outline-none focus:ring-2 focus:ring-main/30"
+            className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-jet focus:outline-none focus:ring-2 focus:ring-main/30"
           />
         </label>
       ))}
@@ -48,7 +48,7 @@ export default function Questions({
           type="button"
           disabled={busy || answered === 0}
           onClick={() => onSubmit(answers)}
-          className="rounded-lg bg-jet px-5 py-2.5 text-sm font-medium text-white hover:bg-jet-deep disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-jet px-6 py-2.5 text-sm font-bold text-black hover:bg-jet-deep disabled:cursor-not-allowed disabled:opacity-50"
         >
           Continue
         </button>

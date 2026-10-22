@@ -6,16 +6,22 @@ import { EMPTY_PROFILE } from "./profileFields";
 import type {
   AlumniResponse,
   ApplicationPackage,
+  ActivityEvent,
+  ActivityKind,
   ChatMessage,
   CoachAttempt,
   FactsResult,
+  GapReport,
   Insight,
+  InterviewSession,
   OwnDraft,
   Program,
   QA,
   ScholarshipResponse,
   StudentProfile,
   Task,
+  WeeklyPlan,
+  WorkflowKit,
 } from "./types";
 
 export type DraftState = {
@@ -45,6 +51,11 @@ export type AppState = {
   tasks: Task[];
   ownDrafts: Record<string, OwnDraft>;
   coach: CoachAttempt[];
+  activity: ActivityEvent[];
+  gaps: Record<string, GapReport>;
+  kits: Record<string, WorkflowKit>;
+  interviews: InterviewSession[];
+  weeklyPlan: { week: string; plan: WeeklyPlan } | null;
   chat: ChatMessage[];
   chatOpen: boolean;
   chatDraft: string;
@@ -69,6 +80,11 @@ const INITIAL: AppState = {
   tasks: [],
   ownDrafts: {},
   coach: [],
+  activity: [],
+  gaps: {},
+  kits: {},
+  interviews: [],
+  weeklyPlan: null,
   chat: [],
   chatOpen: false,
   chatDraft: "",
@@ -84,6 +100,7 @@ type Ctx = {
   set: (patch: Patch) => void;
   reset: () => void;
   askAi: (text: string) => void;
+  track: (kind: ActivityKind) => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -155,7 +172,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, chatOpen: true, chatDraft: text }));
   }, []);
 
-  const value = useMemo(() => ({ state, hydrated, set, reset, askAi }), [state, hydrated, set, reset, askAi]);
+  // Records that the student did something, for the progress page and the nudges. One entry per kind per day,
+  // except practice sessions, which each count.
+  const track = useCallback((kind: ActivityKind) => {
+    const at = new Date().toISOString();
+    setState((prev) => {
+      const repeatable = kind === "coach" || kind === "interview";
+      if (!repeatable && prev.activity.some((a) => a.kind === kind && a.at.slice(0, 10) === at.slice(0, 10))) return prev;
+      return { ...prev, activity: [...prev.activity, { at, kind }].slice(-400) };
+    });
+  }, []);
+
+  const value = useMemo(() => ({ state, hydrated, set, reset, askAi, track }), [state, hydrated, set, reset, askAi, track]);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 

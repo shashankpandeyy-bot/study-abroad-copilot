@@ -128,13 +128,13 @@ export default function ProgramsPage() {
         </section>
       )}
 
-      <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+      <p className="rounded-lg border border-amber-400/40 bg-amber-500/15 p-3 text-xs text-amber-300">
         AI estimate from general knowledge, not live admissions data. Program names, deadlines, requirements and costs may
         be out of date. Use the verify links on each program and check the university&apos;s official website before you
         apply.
       </p>
 
-      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 lg:bottom-0 lg:left-64 border-t border-line bg-white/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 lg:bottom-0 lg:left-64 border-t border-line bg-black/85 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-3 px-4 py-3">
           <p className="text-sm text-ink">
             {count} of {MAX_SELECTED} selected

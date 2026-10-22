@@ -16,14 +16,14 @@ export default function Stamp({
   return (
     <div
       style={{ ["--tilt" as string]: `${tilt}deg`, transform: `rotate(${tilt}deg)` }}
-      className={`grid h-24 w-24 shrink-0 place-items-center rounded-full border-[3px] border-double p-1.5 text-center ${
+      className={`grid h-[5.25rem] w-[5.25rem] shrink-0 place-items-center rounded-full border-[3px] border-double p-1.5 text-center ${
         earned ? `stamp-earned ${color}` : "border-dashed border-ink/20 text-ink/30"
       }`}
       role="img"
       aria-label={`${title}${sub ? ", " + sub : ""}: ${earned ? "earned" : "not yet"}`}
     >
       <span>
-        <span className="num block text-[11px] leading-tight">{title}</span>
+        <span className="num block text-[10px] leading-tight">{title}</span>
         {sub && <span className="mt-0.5 block text-[10px] font-medium leading-tight">{sub}</span>}
       </span>
     </div>

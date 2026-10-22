@@ -1,4 +1,4 @@
-import { DESTINATIONS, NEUTRAL_THEME } from "@/lib/countries";
+import { DESTINATIONS, NEUTRAL_ART } from "@/lib/countries";
 
 // A small, flat skyline for each city. These are illustrations drawn in code, not photographs.
 // One landmark shape per country sits among seeded buildings, in that country's own colours.
@@ -83,7 +83,7 @@ const LANDMARK: Record<string, (x: number, base: number, c: string, ink: string)
 
 export default function CityArt({ code, seed = 1, className = "" }: { code: string; seed?: number; className?: string }) {
   const dest = DESTINATIONS.find((d) => d.code === code);
-  const t = dest?.theme ?? NEUTRAL_THEME;
+  const t = dest?.art ?? NEUTRAL_ART;
   const rand = rng(seed + (code.charCodeAt(0) || 7) * 31 + (code.charCodeAt(1) || 3));
   const base = 132;
   const blocks: { x: number; w: number; h: number; shade: number }[] = [];

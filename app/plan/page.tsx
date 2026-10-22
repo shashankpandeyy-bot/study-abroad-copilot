@@ -10,7 +10,8 @@ import { downloadTextFile, downloadWord } from "@/lib/export";
 import { buildIcs } from "@/lib/ics";
 import { planUrl } from "@/lib/share";
 import { useApp } from "@/lib/state";
-import { buildTasks, mergeTasks, parseIntake } from "@/lib/timeline";
+import KitPanel from "@/components/KitPanel";
+import { buildTasks, mergeTasks, parseIntake, replanFromDeadlines, type Replan } from "@/lib/timeline";
 import type { Program, Task } from "@/lib/types";
 import { useRequireShortlist } from "@/lib/useGuard";
 import { btnPrimary, btnSecondary, cardClass, inputClass } from "@/lib/ui";
@@ -24,7 +25,9 @@ function dayLabel(iso: string): string {
 
 export default function PlanPage() {
   const ready = useRequireShortlist();
-  const { set } = useApp();
+  const { set, track } = useApp();
+  const [replanNote, setReplanNote] = useState<Replan | null>(null);
+  const [replanEmpty, setReplanEmpty] = useState(false);
   const [printId, setPrintId] = useState<string | null>(null);
   const [wordBusy, setWordBusy] = useState("");
   const [exportError, setExportError] = useState("");
@@ -63,6 +66,15 @@ export default function PlanPage() {
 
   function update(id: string, patch: Partial<Task>) {
     set({ tasks: tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) });
+    if (patch.done) track("task");
+  }
+
+  // Works backwards from the submission deadlines the student has confirmed, so every other date follows them.
+  function replan() {
+    const r = replanFromDeadlines(tasks, today);
+    setReplanEmpty(r.anchor === null);
+    setReplanNote(r.anchor ? r : null);
+    if (r.anchor) set({ tasks: r.tasks });
   }
 
   const confirmed = tasks.filter((t) => t.confirmedDate);
@@ -147,7 +159,7 @@ export default function PlanPage() {
             it becomes yours to track.
           </p>
         ) : (
-          <p className="mt-1 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="mt-1 rounded-lg bg-amber-500/15 p-3 text-sm text-amber-300">
             Pick your intake term to get suggested dates.{" "}
             <Link href="/?step=1" className="underline">
               Choose it now
@@ -169,6 +181,30 @@ export default function PlanPage() {
           <ChecklistTracker tasks={tasks} programName={nameOf} today={today} onUpdate={update} />
         </div>
 
+        <div className="mt-5 rounded-[10px] border border-line p-4">
+          <p className="text-sm font-semibold text-ink">Plan from my deadline</p>
+          <p className="mt-0.5 text-sm text-tarmac">
+            Confirm the real &quot;Submit your application&quot; date for a program above, then tap the button. Every task you have not confirmed yourself moves to a date worked back from it: recommendation letters 60 days before, your statement 3 weeks before, and so on.
+          </p>
+          <button type="button" className={btnSecondary + " mt-3"} onClick={replan}>
+            Plan my tasks from my deadline
+          </button>
+          {replanEmpty && <p className="mt-2 text-sm text-amber-300">Confirm a &quot;Submit your application&quot; date first. Pick a date next to that task, then try again.</p>}
+          {replanNote && (
+            <div className="mt-3 text-sm" aria-live="polite">
+              <p className="text-ink">
+                Planned from your earliest deadline, <span className="num text-[13px]">{replanNote.anchor}</span>.{" "}
+                {replanNote.changes.length === 0 ? "Nothing needed to move." : `${replanNote.changes.length} task${replanNote.changes.length === 1 ? "" : "s"} moved.`}
+              </p>
+              {replanNote.changes.some((c) => c.tight) && (
+                <p className="mt-1 text-amber-300">
+                  {replanNote.changes.filter((c) => c.tight).length} task{replanNote.changes.filter((c) => c.tight).length === 1 ? " is" : "s are"} tight: the ideal date has already passed, so they are set to start today.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <button type="button" className={btnSecondary} onClick={downloadCalendar} disabled={confirmed.length === 0}>
             Download calendar file (.ics)
@@ -180,6 +216,8 @@ export default function PlanPage() {
           </span>
         </div>
       </section>
+
+      {selected.length > 0 && <KitPanel programs={selected} />}
 
       <section className={cardClass}>
         <h2 className="text-lg font-semibold text-ink">Download your drafts</h2>
@@ -201,7 +239,7 @@ export default function PlanPage() {
                     <p className="text-sm font-medium text-ink">
                       {p.university}
                       {state.chosenId === p.id && (
-                        <span className="ml-2 rounded bg-jet px-1.5 py-0.5 text-xs text-white">Your pick</span>
+                        <span className="ml-2 rounded bg-jet px-1.5 py-0.5 text-xs font-semibold text-black">Your pick</span>
                       )}
                     </p>
                     <p className="text-xs text-tarmac">{p.program}</p>
@@ -222,7 +260,7 @@ export default function PlanPage() {
           </ul>
         )}
         {exportError && (
-          <p role="alert" className="mt-2 text-sm text-red-700">
+          <p role="alert" className="mt-2 text-sm text-red-300">
             {exportError}
           </p>
         )}
@@ -236,7 +274,7 @@ export default function PlanPage() {
         <p className="mt-1 text-sm text-tarmac">
           Make a link to your profile, shortlist and chosen draft for a parent or counsellor.
         </p>
-        <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <p className="mt-2 rounded-lg border border-amber-400/40 bg-amber-500/15 p-3 text-sm text-amber-300">
           The plan is stored inside the link itself, not on a server. <strong>Anyone who has the link can read it</strong>
           , so share it only with people you trust. Your name is left out.
         </p>
@@ -261,7 +299,7 @@ export default function PlanPage() {
               </button>
               <span className="text-xs text-tarmac">{shareUrl.length.toLocaleString("en-US")} characters</span>
             </div>
-            {shareNote && <p className="text-xs text-amber-800">{shareNote}</p>}
+            {shareNote && <p className="text-xs text-amber-300">{shareNote}</p>}
           </div>
         )}
       </section>

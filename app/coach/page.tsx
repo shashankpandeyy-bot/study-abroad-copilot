@@ -43,7 +43,7 @@ function Bar({ label, value, from }: { label: string; value: number; from?: numb
 }
 
 export default function CoachPage() {
-  const { state, hydrated, set } = useApp();
+  const { state, hydrated, set, track } = useApp();
   const chosen = state.shortlist?.programs.find((p) => p.id === (state.chosenId ?? state.selected[0]));
   const topics = [
     "Tell me about yourself and why you want to study abroad.",
@@ -98,6 +98,7 @@ export default function CoachPage() {
         if (res.overall > last.overall) setBurst((n) => n + 1);
       }
       set((prev) => ({ coach: [...prev.coach, attempt].slice(-60) }));
+      track("coach");
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -136,7 +137,7 @@ export default function CoachPage() {
                   type="button"
                   aria-pressed={prompt === q}
                   onClick={() => setPrompt(q)}
-                  className={`min-h-10 rounded-full border px-3.5 py-1.5 text-left text-sm transition-colors ${prompt === q ? "border-main bg-main text-white" : "border-line bg-surface text-ink hover:border-main"}`}
+                  className={`min-h-10 rounded-full border px-3.5 py-1.5 text-left text-sm transition-colors ${prompt === q ? "border-main bg-main font-semibold text-black" : "border-line bg-surface text-ink hover:border-main"}`}
                 >
                   {q.length > 56 ? q.slice(0, 54) + "…" : q}
                 </button>
@@ -151,7 +152,7 @@ export default function CoachPage() {
                   type="button"
                   onClick={toggleMic}
                   aria-pressed={speech.listening}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-medium text-white ${speech.listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-bold text-black ${speech.listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
                 >
                   {speech.listening ? <Square className="h-4 w-4" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
                   {speech.listening ? "Stop speaking" : "Speak your answer"}
@@ -209,7 +210,7 @@ export default function CoachPage() {
                   </p>
                   <p className="text-sm text-tarmac">Rough guide: IELTS speaking {resultBand.ielts}. Not an official score.</p>
                   {gain != null && (
-                    <p className={`mt-1 text-sm font-medium ${gain > 0 ? "text-emerald-700" : gain < 0 ? "text-amber-800" : "text-tarmac"}`}>
+                    <p className={`mt-1 text-sm font-medium ${gain > 0 ? "text-emerald-400" : gain < 0 ? "text-amber-300" : "text-tarmac"}`}>
                       {gain > 0 ? `Up ${gain} since last time. Nice work.` : gain < 0 ? `Down ${Math.abs(gain)} since last time. One answer is not a trend.` : "Level with last time."}
                     </p>
                   )}
@@ -225,7 +226,7 @@ export default function CoachPage() {
 
               {result.strengths.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-semibold text-emerald-800">What you did well</h3>
+                  <h3 className="text-sm font-semibold text-emerald-300">What you did well</h3>
                   <ul className="mt-1 list-disc space-y-1 pl-5 text-ink">
                     {result.strengths.map((x, i) => (
                       <li key={i}>{x}</li>
@@ -243,7 +244,7 @@ export default function CoachPage() {
                         <p>
                           <span className="rounded bg-stamp-tint px-1.5 py-0.5 text-stamp line-through">{c.original}</span>{" "}
                           <span className="text-tarmac">→</span>{" "}
-                          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-900">{c.better}</span>
+                          <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-emerald-300">{c.better}</span>
                         </p>
                         <p className="mt-1.5 text-tarmac">{c.why}</p>
                       </li>
@@ -332,7 +333,7 @@ export default function CoachPage() {
                   </div>
                   <div>
                     <dt className="text-xs text-tarmac">Since first</dt>
-                    <dd className={`num text-[15px] ${t.change > 0 ? "text-emerald-700" : t.change < 0 ? "text-amber-800" : "text-ink"}`}>
+                    <dd className={`num text-[15px] ${t.change > 0 ? "text-emerald-400" : t.change < 0 ? "text-amber-300" : "text-ink"}`}>
                       {t.change > 0 ? "+" : ""}
                       {t.change}
                     </dd>
@@ -363,7 +364,7 @@ export default function CoachPage() {
                   .slice(0, 5)
                   .map((a) => (
                     <li key={a.id} className="flex items-start gap-3 text-sm">
-                      <span className="num grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-[12px] text-flap">{a.overall}</span>
+                      <span className="num grid h-9 w-9 shrink-0 place-items-center rounded-full bg-board text-[12px] text-flap">{a.overall}</span>
                       <span className="min-w-0">
                         <span className="block truncate text-ink">{a.prompt}</span>
                         <span className="block text-xs text-tarmac">

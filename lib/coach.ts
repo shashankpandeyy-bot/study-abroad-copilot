@@ -72,6 +72,13 @@ export function historySummary(attempts: CoachAttempt[]): string {
     .join("\n");
 }
 
+// Where the latest score sits on the line, so a single score still shows as a dot.
+export function lastPoint(values: number[], width: number, height: number, pad = 4): { x: number; y: number } | null {
+  if (values.length === 0) return null;
+  const v = Math.min(100, Math.max(0, values[values.length - 1]));
+  return { x: values.length === 1 ? width / 2 : width - pad, y: height - pad - (v / 100) * (height - pad * 2) };
+}
+
 export function sparkline(values: number[], width: number, height: number, pad = 4): string {
   if (values.length === 0) return "";
   const lo = 0;

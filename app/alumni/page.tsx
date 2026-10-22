@@ -61,7 +61,7 @@ export default function AlumniPage() {
         )}
 
         {d.error && (
-          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <div role="alert" className="rounded-lg border border-red-400/40 bg-red-500/15 p-3 text-sm text-red-300">
             {d.error}
             <div className="mt-2">
               <button type="button" className={btnSecondary + " !px-3 !py-1.5"} onClick={d.retry}>

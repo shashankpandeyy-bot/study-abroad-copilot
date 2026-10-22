@@ -93,7 +93,7 @@ export default function FundingPage() {
         )}
 
         {d.error && (
-          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <div role="alert" className="rounded-lg border border-red-400/40 bg-red-500/15 p-3 text-sm text-red-300">
             {d.error}
             <div className="mt-2">
               <button type="button" className={btnSecondary + " !px-3 !py-1.5"} onClick={d.retry}>
@@ -156,7 +156,7 @@ export default function FundingPage() {
               </div>
             )}
 
-            <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+            <p className="rounded-lg border border-amber-400/40 bg-amber-500/15 p-3 text-xs text-amber-300">
               {d.data.note || "Confirm every detail on the official scholarship page."} These are recalled from the
               AI&apos;s general knowledge and may be out of date or incomplete. Amounts are rough AI estimates, not
               offers. Eligibility is not the same as winning, since most scholarships are competitive. Use the check

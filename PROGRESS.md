@@ -14,7 +14,7 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 4 on a phone | Every page measured at 375 px wide: no sideways scrolling. Not tested on a real phone |
 | Google Search grounding with source links | Code and unit tests only. **Not run for real**: Google refused the search tool on the free key. Off by default, with "verify links" as the fallback |
 | Loan and debt calculator | Built, tested against published loan-table values |
-| Plain-code tests (`npm test`) | 10 test files, all passing, no key needed |
+| Plain-code tests (`npm test`) | 10 test files, all passing, no key needed (v6 and v7 logic in one file) |
 | `tsc`, lint | Clean |
 | Deployed prototype | Version 3 is live. **Version 4 is not deployed yet**, and the live site has no AI key set until the owner adds `GEMINI_API_KEY` in Vercel |
 
@@ -95,6 +95,16 @@ What was built, what broke along the way, and how it was fixed. Everything below
     - The write screen was 1,128 px wide on a phone because a scrolling row stretched its grid. Fixed with `min-w-0`, and a stamp animation that starts oversized is now clipped inside its card.
     - The typical yearly costs on the country cards were too low for several countries against tuition plus the living-cost proofs they require. Canada, the UK, Australia, Ireland, the Netherlands and Singapore were raised. These are rough ranges from general knowledge, not live data.
 
+15. **Version 7: black theme and six AI upgrades.** The look changed to a Spotify-style black theme. The six upgrades were a requirements gap check, application automation (kit and deadline planning), a mock interview, a whole-plan what-if, funding eligibility reasoning, and a progress coach with a weekly plan. Voice mode was added to OVEREASE.
+16. **Bugs found while building version 7, and fixed.**
+    - **The AI got currency arithmetic wrong.** "My budget falls by 8 lakh rupees" cut the budget by USD 20,000 instead of about 9,500. The design was wrong, not the prompt: the AI now reports only the currency, amount and direction, and code converts and sums. A test covers it, and the same sentence now gives 25,500.
+    - **The AI wrote "UK" where the app says "United Kingdom".** Country names are now normalised in code.
+    - **The interviewer assumed details the student never gave** (it asked about "GPS data"). The prompt now forbids assuming technical details.
+    - My simulated microphone replayed its script when stopped, which made the first interview test look broken. The app was fine, and the simulation was fixed.
+    - Auto-planned dates in the past are not shown as the past. They become today and are marked tight, and a test pins this.
+    - Passport stamps overlapped in the narrow side column and were resized.
+    - Charts with a single score drew nothing, so the latest score is now drawn as a dot.
+
 ## Measured results (manual runs, live API)
 
 | Check | Result |
@@ -114,6 +124,15 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 4, share link with a chosen draft | 6,266 characters. Opened with no saved data, read-only, name left out. A damaged copy showed the "could not be opened" page |
 | Version 4, exports | Calendar file valid (one confirmed date, one event). Word file is a real .docx with 1 yellow highlight, matching the 1 blank in that draft |
 | `scripts/verify-deploy.sh` against the local server | 14 of 14 checks passed |
+| Version 7, requirements check for TUM (sample student) | 7 requirements: met, partly and missing correctly separated from the profile. GRE and recommendation letters flagged missing, ECTS credits partial, IELTS met |
+| Version 7, application kit | 7 documents with lead times and 3 emails, placeholders in square brackets, no flagged numbers |
+| Version 7, plan from deadline (2027-02-01) | 13 tasks moved, 4 marked tight because the ideal dates had passed |
+| Version 7, mock interview, hands-free, simulated speech | 5 answers, 9 spoken lines, final report. The consistency cap lowered the score because of two numbers not in the application |
+| Version 7, plain-sentence what-if | "budget falls by 8 lakh rupees, IELTS drops to 6.5" gave budget 25,500 and IELTS 6.5. Hindi "+5 lakh" gave 41,000 |
+| Version 7, whole-plan impact | TUM went from "fits your budget" to "over your budget", with a loan payment of USD 290 (about 24,300 rupees) a month |
+| Version 7, funding criteria | Three scholarships, each with 3 to 4 conditions checked against the student's facts, "not sure" where the profile was silent |
+| Version 7, weekly plan in Hindi | 5-day plan in Devanagari, with tasks specific to this app |
+| Version 7, voice mode in Hindi, Tamil, Bengali and Telugu (simulated speech) | Listened in hi-IN, ta-IN, bn-IN and te-IN. Spoke each reply with the matching language. Read the English aloud in en-IN when asked. Paused after two silent turns |
 | Version 6, writing coach questions in Hindi | Three questions per section, built from the student's real project, in Devanagari |
 | Version 6, writing coach feedback | Flagged a cliché and a vague sentence by quoting the student's own words. Did not rewrite anything |
 | Version 6, translation Hindi to English | Faithful translation, a Hindi explanation, and four useful words with meanings |
@@ -126,6 +145,9 @@ What was built, what broke along the way, and how it was fixed. Everything below
 | Version 5, 390 px wide | No sideways scrolling on the ten pages measured |
 
 ## What is not proven yet
+
+- **A real microphone and real device voices.** Voice mode was verified with a simulated speech engine.
+- **Google Search grounding,** which would let the requirements check read official pages.
 
 - **Speech.** The microphone and spoken replies were not tested with real speech. Only typed questions were tested.
 - **Lighthouse above 90** has not been measured.

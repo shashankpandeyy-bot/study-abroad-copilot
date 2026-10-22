@@ -74,7 +74,7 @@ export default function ProfilePage() {
               <span className="num text-4xl text-ink">{strength.score}</span>
               <span className="num text-[12px] text-tarmac"> /100</span>
             </span>
-            <span className="num rounded bg-ink px-2.5 py-1 text-[11px] text-flap">{strength.label.toUpperCase()}</span>
+            <span className="num rounded bg-board px-2.5 py-1 text-[11px] text-flap">{strength.label.toUpperCase()}</span>
           </div>
         </div>
       </section>

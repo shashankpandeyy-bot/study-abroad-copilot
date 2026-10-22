@@ -72,7 +72,7 @@ export default function StrengthMeter({ profile, readOnly = false }: { profile: 
           </ul>
         </div>
       ) : (
-        <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="mt-4 rounded-lg bg-emerald-500/15 p-3 text-sm text-emerald-300">
           Nothing important is missing from {readOnly ? "this" : "your"} profile.
         </p>
       )}

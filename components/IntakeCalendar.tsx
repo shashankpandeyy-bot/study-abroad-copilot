@@ -7,8 +7,8 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 // How much room there is to prepare, shown like colours on a price calendar:
 // green has plenty of time, amber is getting close, and red is tight.
 function room(monthsAway: number) {
-  if (monthsAway >= 10) return { word: "Plenty of time", tone: "border-emerald-600/40 bg-emerald-50 text-emerald-900", dot: "bg-emerald-600" };
-  if (monthsAway >= 6) return { word: "Getting close", tone: "border-amber-600/40 bg-amber-50 text-amber-900", dot: "bg-amber-600" };
+  if (monthsAway >= 10) return { word: "Plenty of time", tone: "border-emerald-400/40 bg-emerald-500/15 text-emerald-300", dot: "bg-emerald-400" };
+  if (monthsAway >= 6) return { word: "Getting close", tone: "border-amber-400/40 bg-amber-500/15 text-amber-300", dot: "bg-amber-400" };
   return { word: "Tight", tone: "border-stamp/40 bg-stamp-tint text-stamp", dot: "bg-stamp" };
 }
 
@@ -40,7 +40,7 @@ export default function IntakeCalendar({
               }`}
             >
               <span className="grid w-12 shrink-0 overflow-hidden rounded-md border border-ink/20 text-center">
-                <span className="bg-ink py-0.5 text-[10px] font-medium text-white">{MONTHS[o.start.getUTCMonth()]}</span>
+                <span className="bg-board py-0.5 text-[10px] font-medium text-white">{MONTHS[o.start.getUTCMonth()]}</span>
                 <span className="num bg-surface py-1 text-lg leading-none text-ink">{o.start.getUTCDate()}</span>
               </span>
               <span className="min-w-0">

@@ -10,6 +10,8 @@ import {
   GraduationCap,
   HandCoins,
   Languages,
+  LineChart,
+  Mic,
   Plane,
   Sparkles,
   UserRound,
@@ -22,13 +24,14 @@ import Flag from "@/components/Flag";
 import { destinationFor } from "@/lib/countries";
 import { dual } from "@/lib/money";
 import { nextAction } from "@/lib/nextAction";
+import { nudges } from "@/lib/progress";
 import { riskRangeText } from "@/lib/risk";
 import { useApp } from "@/lib/state";
 import { profileStrength } from "@/lib/strength";
 
 type Stop = { href: string; label: string; short: string; icon: ComponentType<{ className?: string }>; done: boolean };
 
-const RANKS = ["Tourist", "Boarding", "Boarding", "In the air", "In the air", "In the air", "Landing", "Landing", "Landing", "Arrived"];
+const RANKS = ["Tourist", "Boarding", "Boarding", "In the air", "In the air", "In the air", "Landing", "Landing", "Landing", "Landing", "Arrived"];
 
 function useStops() {
   const { state } = useApp();
@@ -41,6 +44,7 @@ function useStops() {
     { href: "/programs", label: "Pick programs", short: "Programs", icon: GraduationCap, done: state.selected.length > 0 },
     { href: "/applications", label: "Choose a draft", short: "Drafts", icon: FileText, done: Boolean(state.chosenId) },
     { href: "/coach", label: "Practise English", short: "Coach", icon: Languages, done: state.coach.length > 0 },
+    { href: "/interview", label: "Mock interview", short: "Interview", icon: Mic, done: state.interviews.length > 0 },
     { href: "/funding", label: "Find funding", short: "Funding", icon: HandCoins, done: state.savedScholarships.length > 0 },
     { href: "/plan", label: "Plan and deadlines", short: "Plan", icon: CalendarCheck, done: state.tasks.some((t) => t.done) },
   ];
@@ -57,10 +61,12 @@ function NextStep() {
   const { state } = useApp();
   const pathname = usePathname();
   const today = new Date().toISOString().slice(0, 10);
-  const a = nextAction(state, today);
+  // A student who has gone quiet or has something due soon hears about that first. Otherwise: the next step.
+  const alert = nudges(state, today).find((n) => n.id.startsWith("stall") || n.id === "due-soon");
+  const a = alert ? { id: alert.id, title: alert.title, body: alert.body, href: alert.href, cta: "Open", tone: alert.tone } : nextAction(state, today);
   // Already on the page it points to: no need to say it twice.
   if (a.href.split("?")[0] === pathname) return null;
-  const tone = a.tone === "watch" ? "border-amber-600/40 bg-amber-50" : a.tone === "done" ? "border-emerald-600/40 bg-emerald-50" : "border-main/30 bg-main-tint";
+  const tone = a.tone === "watch" ? "border-amber-400/40 bg-amber-500/15" : a.tone === "done" ? "border-emerald-400/40 bg-emerald-500/15" : "border-main/30 bg-main-tint";
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pt-4 lg:px-8 print:hidden">
       <div className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border p-3 sm:px-4 ${tone}`}>
@@ -69,7 +75,7 @@ function NextStep() {
           <p className="text-sm font-semibold text-ink">{a.title}</p>
           <p className="text-sm text-tarmac">{a.body}</p>
         </div>
-        <Link href={a.href} className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-[10px] bg-ink px-4 text-sm font-medium text-white hover:bg-ink/85">
+        <Link href={a.href} className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-white px-5 text-sm font-bold text-black hover:bg-white/85">
           {a.cta} <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
@@ -86,7 +92,7 @@ function TripStrip() {
   if (!p.countries && p.budgetUsd == null && !state.shortlist) return null;
 
   return (
-    <div className="border-b border-line bg-surface/70 backdrop-blur">
+    <div className="border-b border-line bg-black/25 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center gap-x-5 gap-y-1 overflow-x-auto px-4 py-2 text-sm [scrollbar-width:none]">
         <span className="flex shrink-0 items-center gap-2 font-medium text-ink">
           {dest ? <Flag code={dest.code} className="w-6" /> : <Compass className="h-4 w-4 text-tarmac" aria-hidden />}
@@ -143,13 +149,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-20 border-b border-line bg-concourse/80 backdrop-blur-xl print:hidden">
           <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-2">
             <Link href="/" className="flex min-h-11 items-center gap-2 text-lg font-semibold tracking-tight text-ink">
-              <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-ink text-flap">
+              <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-board text-flap">
                 <Plane className="h-4 w-4" />
               </span>
               OVEREASE
             </Link>
             {landing && (
-              <Link href="/fly" className="ml-auto inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink/85">
+              <Link href="/fly" className="ml-auto inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-bold text-black hover:bg-white/85">
                 Start your route
               </Link>
             )}
@@ -167,15 +173,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-line bg-surface lg:flex print:hidden" aria-label="Your journey">
+      <aside className="fixed inset-y-2 left-2 z-20 hidden w-60 flex-col overflow-hidden rounded-lg bg-concourse lg:flex print:hidden" aria-label="Your journey">
         <Link href="/" className="flex min-h-16 items-center gap-2 px-5 text-lg font-semibold tracking-tight text-ink">
-          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-ink text-flap">
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-board text-flap">
             <Plane className="h-4 w-4" />
           </span>
           OVEREASE
         </Link>
 
-        <div className="mx-4 rounded-[10px] bg-ink p-3 text-white">
+        <div className="mx-4 rounded-[10px] bg-surface-2 p-3 text-white">
           <p className="text-xs text-white/70">Your rank</p>
           <p className="num text-[15px] text-flap">{rank}</p>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-valuemin={0} aria-valuemax={stops.length} aria-valuenow={done} aria-label="Journey progress">
@@ -204,7 +210,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   >
                     <span
                       className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 ${
-                        s.done ? "border-main bg-main text-white" : current || next ? "border-main bg-surface text-main" : "border-line bg-surface text-tarmac"
+                        s.done ? "border-main bg-main font-semibold text-black" : current || next ? "border-main bg-surface text-main" : "border-line bg-surface text-tarmac"
                       }`}
                     >
                       {s.done ? <Check className="h-4 w-4" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />}
@@ -216,13 +222,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </ol>
-          <Link
-            href="/alumni"
-            aria-current={pathname === "/alumni" ? "page" : undefined}
-            className={`mt-3 flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-sm ${pathname === "/alumni" ? "bg-main-tint font-medium text-main-ink" : "text-tarmac hover:bg-ink/5 hover:text-ink"}`}
-          >
-            <Compass className="h-4 w-4" aria-hidden /> Alumni paths
-          </Link>
+          <div className="mt-3 space-y-0.5">
+            {[
+              { href: "/progress", label: "Your progress", Icon: LineChart },
+              { href: "/alumni", label: "Alumni paths", Icon: Compass },
+            ].map(({ href, label, Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={pathname === href ? "page" : undefined}
+                className={`flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-sm ${pathname === href ? "bg-main-tint font-medium text-main-ink" : "text-tarmac hover:bg-ink/5 hover:text-ink"}`}
+              >
+                <Icon className="h-4 w-4" aria-hidden /> {label}
+              </Link>
+            ))}
+          </div>
         </nav>
 
         <div className="border-t border-line p-3">
@@ -232,23 +246,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-line bg-concourse/80 px-4 py-2 backdrop-blur-xl lg:hidden print:hidden">
+      <header className="sticky top-0 z-20 flex items-center gap-3 bg-black/80 px-4 py-2 backdrop-blur-xl lg:hidden print:hidden">
         <Link href="/" className="flex min-h-11 items-center gap-2 text-base font-semibold tracking-tight text-ink">
-          <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-ink text-flap">
+          <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-board text-flap">
             <Plane className="h-4 w-4" />
           </span>
           OVEREASE
         </Link>
-        <span className="num ml-auto rounded-full bg-ink px-3 py-1 text-[11px] text-flap">{rank}</span>
+        <span className="num ml-auto rounded-full bg-board px-3 py-1 text-[11px] text-flap">{rank}</span>
         <button type="button" onClick={startOver} className="min-h-11 px-2 text-sm text-tarmac">
           Start over
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pl-64">
-        <TripStrip />
-        <NextStep />
-        <div className="flex flex-1 flex-col">{children}</div>
+      <div className="flex min-h-0 flex-1 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:py-2 lg:pb-2 lg:pl-64 lg:pr-2">
+        {/* The main panel. Its top glows in the colour of the chosen country, the way an album's colour fills a playlist page. */}
+        <div className="relative flex flex-1 flex-col bg-concourse lg:rounded-lg">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] lg:rounded-t-lg print:hidden"
+            style={{ background: "linear-gradient(180deg, color-mix(in oklab, var(--c-main) 34%, #121212) 0%, #121212 100%)" }}
+          />
+          <div className="relative flex flex-1 flex-col">
+            <TripStrip />
+            <NextStep />
+            <div className="flex flex-1 flex-col">{children}</div>
+          </div>
+        </div>
       </div>
 
       <nav

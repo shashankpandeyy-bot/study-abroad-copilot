@@ -55,7 +55,7 @@ export default function CountryPickerPage() {
             aria-pressed={sort === k}
             onClick={() => setSort(k)}
             className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-sm transition-colors ${
-              sort === k ? "border-ink bg-ink text-white" : "border-line bg-surface text-ink hover:border-ink/40"
+              sort === k ? "border-white bg-white text-black" : "border-line bg-surface text-ink hover:border-ink/40"
             }`}
           >
             {label}
@@ -75,7 +75,7 @@ export default function CountryPickerPage() {
                   aria-checked={on}
                   onClick={() => choose(d.name)}
                   style={{ ["--stub" as string]: "72%" }}
-                  className={`pass grid w-full grid-cols-[72fr_28fr] text-left transition-colors ${on ? "bg-main-tint" : "hover:bg-white"}`}
+                  className={`pass grid w-full grid-cols-[72fr_28fr] text-left transition-colors ${on ? "bg-main-tint" : "hover:bg-surface-2"}`}
                 >
                   <span className="flex flex-col gap-3 p-4">
                     <span className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function CountryPickerPage() {
             type="button"
             disabled={!chosen}
             onClick={() => router.push("/fly/budget")}
-            className="inline-flex min-h-12 items-center rounded-[10px] bg-main px-6 text-[1.0625rem] font-medium text-white transition-colors hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-12 items-center rounded-full bg-main px-7 text-[1.0625rem] font-bold text-black transition-colors hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
           >
             Book this route
           </button>

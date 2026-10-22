@@ -85,12 +85,69 @@ export function buildTasks(
 }
 
 // Keeps the student's ticks and confirmed dates, adds new tasks, drops tasks of programs no longer chosen.
+// Tasks the app added from a gap check ("custom") stay as long as their program is still chosen.
 export function mergeTasks(existing: Task[], fresh: Task[]): Task[] {
   const old = new Map(existing.map((t) => [t.id, t]));
-  return fresh.map((t) => {
+  const merged = fresh.map((t) => {
     const previous = old.get(t.id);
-    return previous ? { ...t, done: previous.done, confirmedDate: previous.confirmedDate } : t;
+    return previous ? { ...t, done: previous.done, confirmedDate: previous.confirmedDate, plannedDate: previous.plannedDate } : t;
   });
+  const chosen = new Set(fresh.map((t) => t.programId));
+  const customs = existing.filter((t) => t.custom && chosen.has(t.programId));
+  return [...merged, ...customs];
+}
+
+export const addDays = (isoDate: string, days: number): string => {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return iso(d);
+};
+
+// How many days before the earliest confirmed submission deadline each standard task is best done.
+const GENERAL_OFFSET: Record<string, number> = {
+  "general:exams": 120,
+  "general:references": 60,
+  "general:transcripts": 45,
+  "general:cv": 35,
+  "general:sop": 21,
+  "general:passport": 35,
+  "general:funds": 30,
+};
+const PROGRAM_OFFSET: Record<string, number> = { check: 150, scholarship: 90 };
+// Gap tasks carry their effort in the id (gap:<program>:<effort>:<n>), and bigger jobs need an earlier start.
+const EFFORT_DAYS: Record<string, number> = { hours: 14, days: 28, weeks: 56, months: 100 };
+
+export type Replan = { tasks: Task[]; changes: { id: string; label: string; from: string; to: string; tight: boolean }[]; anchor: string | null };
+
+// Works backwards from the deadlines the student has CONFIRMED and sets a planned date for every task they have
+// not confirmed themselves. A date already in the past becomes "today" and is marked tight. Nothing the student
+// confirmed or ticked is ever changed.
+export function replanFromDeadlines(tasks: Task[], today: string): Replan {
+  const submits = new Map<string, string>();
+  for (const t of tasks) if (t.id.endsWith(":submit") && t.confirmedDate) submits.set(t.programId, t.confirmedDate);
+  if (submits.size === 0) return { tasks, changes: [], anchor: null };
+  const anchor = [...submits.values()].sort()[0];
+  const changes: Replan["changes"] = [];
+  const out = tasks.map((t) => {
+    if (t.done || t.confirmedDate || t.id.endsWith(":submit")) return t;
+    let target: string | null = null;
+    if (GENERAL_OFFSET[t.id] != null) target = addDays(anchor, -GENERAL_OFFSET[t.id]);
+    else {
+      const suffix = t.id.split(":").pop() ?? "";
+      if (PROGRAM_OFFSET[suffix] != null) target = addDays(submits.get(t.programId) ?? anchor, -PROGRAM_OFFSET[suffix]);
+      else if (t.custom && t.id.startsWith("gap:")) {
+        const effort = t.id.split(":")[2] ?? "days";
+        target = addDays(submits.get(t.programId) ?? anchor, -(EFFORT_DAYS[effort] ?? 28));
+      }
+    }
+    if (!target) return t;
+    const tight = target < today;
+    const planned = tight ? today : target;
+    const before = t.plannedDate || t.suggestedDate;
+    if (planned !== before) changes.push({ id: t.id, label: t.label, from: before, to: planned, tight });
+    return { ...t, plannedDate: planned };
+  });
+  return { tasks: out, changes, anchor };
 }
 
 export function progress(tasks: Task[]): { done: number; total: number; percent: number } {

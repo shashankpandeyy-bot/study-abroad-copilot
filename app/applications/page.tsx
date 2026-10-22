@@ -16,7 +16,7 @@ import PageLoading from "@/components/PageLoading";
 
 export default function ApplicationsPage() {
   const ready = useRequireShortlist();
-  const { set } = useApp();
+  const { set, track } = useApp();
   const inFlight = useRef<Set<string>>(new Set());
   const [burst, setBurst] = useState(0);
 
@@ -86,7 +86,7 @@ export default function ApplicationsPage() {
             ["One draft chosen", Boolean(state.chosenId)],
           ].map(([label, ok], i) => (
             <li key={String(label)} className={`flex items-center gap-3 rounded-[10px] border p-3 ${ok ? "border-main/40 bg-main-tint" : "border-line bg-surface"}`}>
-              <span className={`num grid h-7 w-7 place-items-center rounded-full text-[12px] ${ok ? "bg-main text-white" : "border border-ink/25 text-tarmac"}`}>{ok ? "✓" : i + 1}</span>
+              <span className={`num grid h-7 w-7 place-items-center rounded-full text-[12px] ${ok ? "bg-main font-semibold text-black" : "border border-ink/25 text-tarmac"}`}>{ok ? "✓" : i + 1}</span>
               <span className={`text-sm ${ok ? "font-medium text-main-ink" : "text-tarmac"}`}>{String(label)}</span>
             </li>
           ))}
@@ -108,7 +108,7 @@ export default function ApplicationsPage() {
           return (
             <section
               key={p.id}
-              className={`relative rounded-xl border bg-white p-5 ${
+              className={`relative rounded-xl border bg-surface p-5 ${
                 chosen ? "border-jet ring-2 ring-main/30" : "border-line"
               }`}
             >
@@ -137,7 +137,7 @@ export default function ApplicationsPage() {
               )}
 
               {draft?.status === "error" && (
-                <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                <div role="alert" className="mt-4 rounded-lg border border-red-400/40 bg-red-500/15 p-3 text-sm text-red-300">
                   {draft.error}
                   <div className="mt-2">
                     <button
@@ -187,7 +187,10 @@ export default function ApplicationsPage() {
                       className={chosen ? btnSecondary : btnPrimary}
                       onClick={() => {
                         set({ chosenId: chosen ? null : p.id });
-                        if (!chosen) setBurst((n) => n + 1);
+                        if (!chosen) {
+                          setBurst((n) => n + 1);
+                          track("choose");
+                        }
                       }}
                     >
                       {chosen ? "Your pick (click to undo)" : "Choose this one"}
@@ -209,9 +212,9 @@ export default function ApplicationsPage() {
 
       {burst > 0 && <Burst key={burst} />}
       {state.chosenId && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-ink p-5 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-surface-2 p-5 text-white">
           <p className="text-[15px]">Draft chosen. Next stop: your plan, with deadlines, downloads and a share link.</p>
-          <Link href="/plan" className="inline-flex min-h-11 items-center rounded-[10px] bg-flap px-5 font-semibold text-ink">
+          <Link href="/plan" className="inline-flex min-h-11 items-center rounded-full bg-flap px-5 font-bold text-black">
             Go to my plan
           </Link>
         </div>

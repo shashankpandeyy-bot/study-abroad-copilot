@@ -61,7 +61,7 @@ const LANG_KEY = "overease:language";
 const SPEAK_KEY = "overease:speak";
 
 export default function ChatDock() {
-  const { state, hydrated, set } = useApp();
+  const { state, hydrated, set, track } = useApp();
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -92,6 +92,12 @@ export default function ChatDock() {
   const [translating, setTranslating] = useState<number | null>(null);
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
+  // Voice mode: a hands-free loop of listen, answer, speak, listen again.
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [speakingNow, setSpeakingNow] = useState(false);
+  const [readEnglish, setReadEnglish] = useState(false);
+  const emptyRuns = useRef(0);
+  const listenRef = useRef<() => void>(() => {});
   const [canListen] = useState(() => Boolean(recognitionCtor()));
   const recRef = useRef<Recognition | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -116,31 +122,45 @@ export default function ChatDock() {
     return () => window.removeEventListener("overease:language", onLang);
   }, []);
 
+  // Reads text aloud and resolves when it has finished (or straight away if speaking is off or unavailable).
   const say = useCallback(
-    (text: string) => {
-      if (!speak || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = lang.speech;
-      const voices = window.speechSynthesis.getVoices();
-      const match = voices.find((v) => v.lang.replace("_", "-").toLowerCase() === lang.speech.toLowerCase()) ?? voices.find((v) => v.lang.toLowerCase().startsWith(lang.code));
-      if (match) utter.voice = match;
-      utter.rate = 0.98;
-      window.speechSynthesis.speak(utter);
+    (text: string, as?: { speech: string; code: string }): Promise<void> => {
+      if (!speak || typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve();
+      const speech = as?.speech ?? lang.speech;
+      const code = as?.code ?? lang.code;
+      return new Promise((resolve) => {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = speech;
+        const voices = window.speechSynthesis.getVoices();
+        const match = voices.find((v) => v.lang.replace("_", "-").toLowerCase() === speech.toLowerCase()) ?? voices.find((v) => v.lang.toLowerCase().startsWith(code));
+        if (match) utter.voice = match;
+        utter.rate = 0.98;
+        const done = () => {
+          setSpeakingNow(false);
+          resolve();
+        };
+        utter.onend = done;
+        utter.onerror = done;
+        setSpeakingNow(true);
+        window.speechSynthesis.speak(utter);
+      });
     },
     [speak, lang]
   );
 
   // Shows a message in English, with the hard words explained, so the student understands and can learn it.
-  async function showEnglish(index: number, text: string) {
-    if (lang.code === "en") return;
+  async function showEnglish(index: number, text: string): Promise<EnglishView | null> {
+    if (lang.code === "en") return null;
     setTranslating(index);
     try {
       const res = await post<EnglishView & { explanation: string }>("/api/translate", { text, language: lang.name });
       const view: EnglishView = { english: res.english, words: res.words };
       set((prev) => ({ chat: prev.chat.map((m, j) => (j === index ? { ...m, english: view } : m)) }));
+      return view;
     } catch {
       /* the translation is a bonus, so a failure is quiet */
+      return null;
     } finally {
       setTranslating((t) => (t === index ? null : t));
     }
@@ -152,6 +172,7 @@ export default function ChatDock() {
     const before = state.chat;
     const history: ChatMessage[] = [...before, { role: "user", text }];
     set({ chat: history, chatDraft: "" });
+    track("chat");
     setBusy(true);
     setError("");
     // Runs alongside the reply: what the student said, in English.
@@ -175,10 +196,17 @@ export default function ChatDock() {
           },
         ],
       }));
-      say(res.message);
+      setBusy(false);
+      await say(res.message);
+      // Optionally read the English version aloud too, so the student hears how it sounds.
+      if (readEnglish && lang.code !== "en") {
+        const view = await showEnglish(history.length, res.message);
+        if (view) await say(view.english, { speech: "en-IN", code: "en" });
+      }
     } catch (e) {
       set({ chat: before, chatDraft: text });
       setError(errorText(e));
+      setVoiceMode(false);
     } finally {
       setBusy(false);
     }
@@ -209,13 +237,27 @@ export default function ChatDock() {
       setHeard((finalText + interim).trim());
     };
     rec.onerror = (e) => {
-      if (e.error !== "aborted") setError(MIC_ERRORS[e.error] ?? "Voice input stopped unexpectedly. Try again or type.");
+      if (e.error !== "aborted") {
+        setError(MIC_ERRORS[e.error] ?? "Voice input stopped unexpectedly. Try again or type.");
+        // A blocked or missing microphone cannot be retried by looping, so stop voice mode.
+        if (e.error !== "no-speech") setVoiceMode(false);
+      }
     };
     rec.onend = () => {
       setListening(false);
       setHeard("");
       const said = finalText.trim();
-      if (said) void send(said);
+      if (said) {
+        emptyRuns.current = 0;
+        void send(said);
+      } else if (voiceMode) {
+        // Nothing heard. After two empty turns in a row, pause voice mode instead of listening forever.
+        emptyRuns.current += 1;
+        if (emptyRuns.current >= 2) {
+          setVoiceMode(false);
+          setError("I did not hear anything, so I paused voice mode. Tap the mic or switch it back on.");
+        }
+      }
     };
     recRef.current = rec;
     try {
@@ -223,6 +265,32 @@ export default function ChatDock() {
       setListening(true);
     } catch {
       setError("Could not start the microphone. Try again.");
+    }
+  }
+
+  // Keep a stable way for the loop to start listening with the latest state.
+  useEffect(() => {
+    listenRef.current = toggleMic;
+  });
+
+  // Voice mode: whenever nothing is happening, listen again.
+  useEffect(() => {
+    if (!voiceMode || !state.chatOpen || !chosenOnce || listening || busy || speakingNow) return;
+    const t = setTimeout(() => listenRef.current(), 700);
+    return () => clearTimeout(t);
+  }, [voiceMode, state.chatOpen, chosenOnce, listening, busy, speakingNow]);
+
+  function toggleVoiceMode() {
+    emptyRuns.current = 0;
+    setError("");
+    if (voiceMode) {
+      setVoiceMode(false);
+      recRef.current?.abort();
+      window.speechSynthesis?.cancel();
+      setListening(false);
+      setSpeakingNow(false);
+    } else {
+      setVoiceMode(true);
     }
   }
 
@@ -267,9 +335,9 @@ export default function ChatDock() {
         type="button"
         onClick={() => set({ chatOpen: true })}
         aria-label="Open OVEREASE, the voice guide"
-        className="fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex min-h-12 items-center gap-2 rounded-full bg-ink py-2 pl-3 pr-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgb(17_27_46/0.28)] transition-transform hover:scale-[1.03] active:scale-95 lg:bottom-6 print:hidden"
+        className="fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex min-h-12 items-center gap-2 rounded-full bg-white py-2 pl-3 pr-5 text-sm font-bold text-black shadow-[0_8px_24px_rgb(17_27_46/0.28)] transition-transform hover:scale-[1.03] active:scale-95 lg:bottom-6 print:hidden"
       >
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-flap text-ink">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-flap text-black">
           <Mic className="h-4 w-4" aria-hidden />
         </span>
         OVEREASE
@@ -283,7 +351,7 @@ export default function ChatDock() {
       className="fixed inset-0 z-40 flex flex-col bg-surface sm:inset-auto sm:bottom-6 sm:right-4 sm:h-[min(38rem,80vh)] sm:w-[min(26rem,calc(100vw-2rem))] sm:rounded-[14px] sm:border sm:border-line sm:shadow-[0_20px_60px_rgb(17_27_46/0.25)]"
     >
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-flap">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-board text-flap">
           <Mic className="h-4 w-4" aria-hidden />
         </span>
         <div className="min-w-0">
@@ -302,6 +370,16 @@ export default function ChatDock() {
             </option>
           ))}
         </select>
+        {canListen && (
+          <button
+            type="button"
+            onClick={toggleVoiceMode}
+            aria-pressed={voiceMode}
+            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-bold ${voiceMode ? "bg-jet text-black" : "border border-white/30 text-ink hover:border-white"}`}
+          >
+            <Mic className="h-3.5 w-3.5" aria-hidden /> {voiceMode ? "Voice on" : "Voice mode"}
+          </button>
+        )}
         <button
           type="button"
           onClick={toggleSpeak}
@@ -363,7 +441,7 @@ export default function ChatDock() {
             <div
               lang={m.role === "assistant" ? lang.code : undefined}
               className={`inline-block max-w-[92%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-left ${
-                m.role === "user" ? "bg-jet text-white" : "bg-concourse text-ink"
+                m.role === "user" ? "bg-jet font-semibold text-black" : "bg-concourse text-ink"
               }`}
             >
               {m.text}
@@ -441,6 +519,23 @@ export default function ChatDock() {
       </div>
       )}
 
+      {voiceMode && (
+        <div className="flex items-center gap-3 border-t border-line bg-jet-tint px-4 py-2 text-sm text-ink" role="status" aria-live="polite">
+          <span className="flex h-4 items-end gap-0.5" aria-hidden>
+            {[0, 1, 2, 3].map((i) => (
+              <span key={i} className="w-1 origin-bottom rounded-full bg-jet motion-safe:animate-[bars_0.9s_ease-in-out_infinite]" style={{ height: "100%", animationDelay: `${i * 0.12}s`, animationPlayState: listening || speakingNow || busy ? "running" : "paused" }} />
+            ))}
+          </span>
+          <span className="font-medium">{busy ? "Thinking..." : speakingNow ? "Speaking..." : listening ? `Listening in ${lang.name}...` : "Getting ready..."}</span>
+          {lang.code !== "en" && (
+            <label className="ml-auto flex cursor-pointer items-center gap-1.5 text-xs text-tarmac">
+              <input type="checkbox" checked={readEnglish} onChange={(e) => setReadEnglish(e.target.checked)} className="accent-[var(--jet)]" />
+              Read the English aloud too
+            </label>
+          )}
+        </div>
+      )}
+
       <form
         className="flex items-end gap-2 border-t border-line p-3"
         onSubmit={(e) => {
@@ -454,7 +549,7 @@ export default function ChatDock() {
             onClick={toggleMic}
             aria-pressed={listening}
             aria-label={listening ? "Stop listening" : `Speak in ${lang.name}`}
-            className={`relative grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition-colors ${listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
+            className={`relative grid h-12 w-12 shrink-0 place-items-center rounded-full text-black transition-colors ${listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
           >
             {listening && <span className="absolute inset-0 animate-ping rounded-full bg-stamp/40 motion-reduce:hidden" />}
             {listening ? <Square className="relative h-4 w-4" aria-hidden /> : <Mic className="relative h-5 w-5" aria-hidden />}

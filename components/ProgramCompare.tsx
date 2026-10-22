@@ -8,9 +8,9 @@ import type { Program, ScholarshipResponse, StudentProfile } from "@/lib/types";
 import { bandStyle, btnSecondary, categoryStyle } from "@/lib/ui";
 
 const FIT = {
-  fits: { label: "Fits", style: "bg-emerald-100 text-emerald-800" },
-  stretch: { label: "A stretch", style: "bg-amber-100 text-amber-800" },
-  over: { label: "Over budget", style: "bg-rose-100 text-rose-800" },
+  fits: { label: "Fits", style: "bg-emerald-500/15 text-emerald-300" },
+  stretch: { label: "A stretch", style: "bg-amber-500/15 text-amber-300" },
+  over: { label: "Over budget", style: "bg-rose-500/20 text-rose-300" },
   unknown: { label: "No budget set", style: "bg-ink/10 text-ink" },
 } as const;
 

@@ -19,6 +19,8 @@ import {
   THESIS_PREFERENCES,
   WORK_YEARS,
 } from "./options";
+import { normalizeCountryList } from "./countryNames";
+import { INR_PER_USD } from "./money";
 import { languageNameOrEnglish } from "./languages";
 import { FIELD_LABELS } from "./profileFields";
 import { SOP_SECTIONS } from "./sopSections";
@@ -387,6 +389,15 @@ export function parseScholarshipsInput(raw: unknown): { scholarships: Scholarshi
         amountLowUsd,
         amountHighUsd,
         eligibility: str(s.eligibility, 500),
+        criteria: (Array.isArray(s.criteria) ? s.criteria : [])
+          .filter(isObj)
+          .map((c) => ({
+            criterion: str(c.criterion, 200),
+            status: (["meets", "unclear", "misses"] as const).includes(c.status as "meets") ? (c.status as "meets" | "unclear" | "misses") : ("unclear" as const),
+            why: str(c.why, 300),
+          }))
+          .filter((c) => c.criterion)
+          .slice(0, 6),
         match: oneOf(s.match, ["likely", "maybe", "unlikely"] as const),
         matchReason: str(s.matchReason, 400),
       };
@@ -567,4 +578,158 @@ export function parseCoachScore(raw: unknown, answer: string): CoachResult {
     drill: str(raw.drill, 400),
     progressNote: str(raw.progressNote, 300),
   };
+}
+
+// ---------- Gap analysis, kit, interview, what-if sentence, weekly plan ----------
+
+import { interviewOverall, MAX_ANSWERS as INTERVIEW_MAX } from "./interview";
+import { unverifiedNumbers } from "./checks";
+import { INTERVIEW_SKILLS, type GapItem, type InterviewScores, type KitDocument, type KitEmail, type WeeklyPlan } from "./types";
+
+const STATUSES = ["met", "partial", "missing", "unknown"] as const;
+const EFFORTS = ["hours", "days", "weeks", "months"] as const;
+
+export function parseGapReport(raw: unknown): { summary: string; items: GapItem[] } {
+  if (!isObj(raw)) throw new BadAnswerError("The requirements check came back in an unexpected shape. Please try again.");
+  const seen = new Set<string>();
+  const items: GapItem[] = [];
+  for (const i of (Array.isArray(raw.items) ? raw.items : []).filter(isObj).slice(0, 10)) {
+    const requirement = str(i.requirement, 200);
+    if (!requirement || seen.has(requirement.toLowerCase())) continue;
+    seen.add(requirement.toLowerCase());
+    const status = (STATUSES as readonly string[]).includes(i.status as string) ? (i.status as GapItem["status"]) : "unknown";
+    const effort = (EFFORTS as readonly string[]).includes(i.effort as string) ? (i.effort as GapItem["effort"]) : "weeks";
+    items.push({ requirement, status, evidence: str(i.evidence, 400), action: status === "met" ? "" : str(i.action, 400), effort });
+  }
+  if (items.length < 3) throw new BadAnswerError("The requirements check listed too few requirements. Please try again.");
+  const summary = str(raw.summary, 600);
+  if (!summary) throw new BadAnswerError("The requirements check had no summary. Please try again.");
+  return { summary, items };
+}
+
+export function parseKit(raw: unknown, studentText: string): { documents: KitDocument[]; emails: (KitEmail & { flagged: string[] })[] } {
+  if (!isObj(raw)) throw new BadAnswerError("The application kit came back in an unexpected shape. Please try again.");
+  const documents = (Array.isArray(raw.documents) ? raw.documents : [])
+    .filter(isObj)
+    .map((d) => ({
+      name: str(d.name, 150),
+      why: str(d.why, 300),
+      who: str(d.who, 200),
+      leadDays: Number.isFinite(Number(d.leadDays)) ? Math.min(365, Math.max(1, Math.round(Number(d.leadDays)))) : 14,
+      tip: str(d.tip, 300),
+    }))
+    .filter((d) => d.name)
+    .slice(0, 10);
+  const emails = (Array.isArray(raw.emails) ? raw.emails : [])
+    .filter(isObj)
+    .map((e) => {
+      const body = str(e.body, 2500);
+      // Numbers in an email the student never gave us are shown as warnings, since a real person will read it.
+      const flagged = [...unverifiedNumbers(body, studentText)];
+      return { purpose: str(e.purpose, 150), to: str(e.to, 150), subject: str(e.subject, 200), body, flagged };
+    })
+    .filter((e) => e.body && e.subject)
+    .slice(0, 4);
+  if (documents.length < 3 || emails.length < 1) throw new BadAnswerError("The application kit was incomplete. Please try again.");
+  return { documents, emails };
+}
+
+export type InterviewInput = { statement: string; transcript: { role: "interviewer" | "student"; text: string }[]; answered: number };
+
+export function parseInterviewInput(body: Record<string, unknown>): InterviewInput {
+  const transcript = (Array.isArray(body.transcript) ? body.transcript : [])
+    .filter(isObj)
+    .slice(0, 14)
+    .map((t) => ({ role: t.role === "student" ? ("student" as const) : ("interviewer" as const), text: str(t.text, 1500) }))
+    .filter((t) => t.text);
+  const answered = transcript.filter((t) => t.role === "student").length;
+  if (answered > INTERVIEW_MAX) throw new BadRequestError("This interview is already finished.");
+  return { statement: str(body.statement, 6000), transcript, answered };
+}
+
+export type InterviewTurnResult = {
+  feedback: string;
+  question: string;
+  done: boolean;
+  scores?: InterviewScores;
+  overall?: number;
+  strengths: string[];
+  improve: string[];
+  prepare: string[];
+};
+
+export function parseInterviewTurn(raw: unknown, answered: number): InterviewTurnResult {
+  if (!isObj(raw)) throw new BadAnswerError("The interviewer replied in an unexpected shape. Please try again.");
+  const finished = answered >= INTERVIEW_MAX;
+  const feedback = str(raw.feedback, 500);
+  if (!finished) {
+    const question = str(raw.question, 500);
+    if (!question) throw new BadAnswerError("The interviewer did not ask a question. Please try again.");
+    return { feedback, question, done: false, strengths: [], improve: [], prepare: [] };
+  }
+  const given = isObj(raw.scores) ? raw.scores : {};
+  const scores = {} as InterviewScores;
+  for (const s of INTERVIEW_SKILLS) {
+    const n = toNumber((given as Record<string, unknown>)[s], 0, 100);
+    if (n == null) throw new BadAnswerError("The interview report had a missing or out-of-range score. Please try again.");
+    scores[s] = Math.round(n);
+  }
+  const improve = strList(raw.improve, 4, 300);
+  if (improve.length === 0) throw new BadAnswerError("The interview report had nothing to improve. Please try again.");
+  return { feedback, question: "", done: true, scores, overall: interviewOverall(scores), strengths: strList(raw.strengths, 3, 300), improve, prepare: strList(raw.prepare, 3, 300) };
+}
+
+export function parseChangesInput(body: Record<string, unknown>): { text: string; language: string } {
+  const text = str(body.text, 600);
+  if (!text) throw new BadRequestError("Describe the change you want to try.");
+  return { text, language: languageNameOrEnglish(body.language) };
+}
+
+const MONEY_FIELDS: ProfileField[] = ["budgetUsd", "budgetMinUsd", "scholarshipMinUsd", "scholarshipMaxUsd", "loanAmountUsd"];
+
+// The AI reports what the student said about money. The conversion to dollars and the plus or minus are done here.
+export function applyMoney(current: number | null, m: Record<string, unknown>): number | undefined {
+  const amount = typeof m.amount === "number" && Number.isFinite(m.amount) && m.amount >= 0 ? m.amount : null;
+  if (amount == null || (m.currency !== "INR" && m.currency !== "USD")) return undefined;
+  const usd = m.currency === "INR" ? amount / INR_PER_USD : amount;
+  let next: number;
+  if (m.direction === "increase" || m.direction === "decrease") {
+    if (current == null) return undefined; // nothing to add to or take from
+    next = m.direction === "increase" ? current + usd : current - usd;
+  } else next = usd;
+  return Math.max(0, Math.round(next / 500) * 500);
+}
+
+export function parseChanges(raw: unknown, profile?: StudentProfile): { summary: string; changes: Proposal[] } {
+  if (!isObj(raw)) throw new BadAnswerError("The change came back in an unexpected shape. Please try again.");
+  const fields = Object.keys(FIELD_LABELS) as ProfileField[];
+  const changes: Proposal[] = [];
+  const used = new Set<ProfileField>();
+  for (const c of (Array.isArray(raw.changes) ? raw.changes : []).slice(0, 8)) {
+    if (!isObj(c) || !fields.includes(c.field as ProfileField)) continue;
+    const field = c.field as ProfileField;
+    if (field === "fullName" || used.has(field)) continue; // the name is never sent or changed this way
+    let value: ReturnType<typeof coerceValue>;
+    if (MONEY_FIELDS.includes(field) && isObj(c.money) && profile) {
+      const cur = profile[field];
+      value = applyMoney(typeof cur === "number" ? cur : null, c.money);
+    } else value = coerceValue(field, c.value);
+    if (value === undefined) continue;
+    if (field === "countries" && typeof value === "string") value = normalizeCountryList(value);
+    used.add(field);
+    changes.push({ field, value, label: FIELD_LABELS[field], reason: str(c.reason, 300) });
+  }
+  return { summary: str(raw.summary, 400), changes };
+}
+
+export function parseWeeklyPlan(raw: unknown): WeeklyPlan {
+  if (!isObj(raw)) throw new BadAnswerError("The weekly plan came back in an unexpected shape. Please try again.");
+  const days = (Array.isArray(raw.days) ? raw.days : [])
+    .filter(isObj)
+    .map((d) => ({ day: str(d.day, 40), task: str(d.task, 300) }))
+    .filter((d) => d.day && d.task)
+    .slice(0, 7);
+  const headline = str(raw.headline, 400);
+  if (days.length < 3 || !headline) throw new BadAnswerError("The weekly plan was incomplete. Please try again.");
+  return { headline, days, encouragement: str(raw.encouragement, 300) };
 }

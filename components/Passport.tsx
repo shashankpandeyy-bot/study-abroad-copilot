@@ -20,6 +20,7 @@ export default function Passport({ title = "Your passport" }: { title?: string }
     { title: "DRAFT", sub: "CHOSEN", earned: Boolean(state.chosenId), tilt: -7, tone: "stamp" as const },
     { title: "OWN WORDS", sub: "150+", earned: ownWords >= 150, tilt: 7, tone: "stamp" as const },
     { title: "ENGLISH", sub: "SCORED", earned: state.coach.length > 0, tilt: -6 },
+    { title: "MOCK", sub: "INTERVIEW", earned: state.interviews.length > 0, tilt: 8 },
     { title: "FIRST TASK", sub: "DONE", earned: state.tasks.some((t) => t.done), tilt: 5, tone: "stamp" as const },
   ];
   const n = stamps.filter((s) => s.earned).length;

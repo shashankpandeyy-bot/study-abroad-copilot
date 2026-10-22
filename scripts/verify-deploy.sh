@@ -20,7 +20,7 @@ if echo "$health" | grep -q '"ai":"configured"'; then pass "AI key is configured
 echo "      grounding: $(echo "$health" | sed -n 's/.*"grounding":"\([a-z]*\)".*/\1/p')"
 
 # 2. Every page loads.
-for path in / /fly /fly/budget /profile /programs /applications /coach /draft /funding /plan /plan/shared /alumni; do
+for path in / /fly /fly/budget /profile /programs /applications /coach /interview /progress /draft /funding /plan /plan/shared /alumni; do
   code="$(status "$BASE$path")"
   # Pages that need saved data still return 200; they redirect inside the browser.
   if [ "$code" = "200" ]; then pass "GET $path"; else bad "GET $path returned $code"; fi
@@ -44,10 +44,22 @@ if [ "$code" = "400" ]; then pass "English coach refuses a too-short answer"; el
 code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -X POST -H "Content-Type: application/json" -d '{"text":""}' "$BASE/api/translate")"
 if [ "$code" = "400" ]; then pass "translator refuses empty text"; else bad "translator returned $code for empty text (expected 400)"; fi
 
+# 5a2. The new routes refuse bad input politely, without calling the AI.
+for route in gap kit interview parsechange progress; do
+  code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -X POST -H "Content-Type: application/json" -d '{}' "$BASE/api/$route")"
+  if [ "$code" = "400" ]; then pass "/api/$route refuses an empty request"; else bad "/api/$route returned $code for an empty request (expected 400)"; fi
+done
+
 # 5b. The voice guide answers in another language (typed text, no microphone needed).
 if [ "${SKIP_AI:-0}" != "1" ]; then
   hi="$(curl -s --max-time 60 -X POST -H "Content-Type: application/json" -d '{"profile":{"degreeLevel":"Master'"'"'s","countries":"Germany"},"page":"plan","language":"Hindi","messages":[{"role":"user","text":"What is a statement of purpose?"}],"programs":[]}' "$BASE/api/chat")"
   if echo "$hi" | grep -q '[ऀ-ॿ]'; then pass "OVEREASE replies in Hindi script"; else bad "OVEREASE Hindi reply was not in Devanagari: $(echo "$hi" | head -c 160)"; fi
+fi
+
+# 5c. The what-if sentence keeps the money arithmetic in code: 35,000 dollars minus 3 lakh rupees is 31,500.
+if [ "${SKIP_AI:-0}" != "1" ]; then
+  pc="$(curl -s --max-time 60 -X POST -H "Content-Type: application/json" -d '{"profile":{"budgetUsd":35000,"countries":"Germany"},"text":"What if my budget falls by 3 lakh rupees?","language":"English"}' "$BASE/api/parsechange")"
+  if echo "$pc" | grep -q '"value":31500'; then pass "what-if sentence gives the right budget (31,500)"; else bad "what-if sentence gave: $(echo "$pc" | head -c 200)"; fi
 fi
 
 # 6. One real AI call, to prove the key works from this deployment.

@@ -1,10 +1,11 @@
 import { summarizeCost } from "./cost";
 import { dualRange } from "./money";
+import { effectiveTaskDate } from "./taskDates";
 import type { AppState } from "./state";
 
 export type NextAction = { id: string; title: string; body: string; href: string; cta: string; tone: "go" | "watch" | "done" };
 
-const effective = (t: AppState["tasks"][number]) => t.confirmedDate || t.suggestedDate;
+const effective = effectiveTaskDate;
 
 // The workflow brain: looks at everything the student has done and names the single best next step,
 // with the reason. Plain rules, so it is fast, free, and always explainable.

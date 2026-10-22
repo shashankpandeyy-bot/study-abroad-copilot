@@ -6,7 +6,7 @@ export default function FitPanel({ insight }: { insight: Insight }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
-        <h4 className="text-sm font-semibold text-emerald-800">What helps you here</h4>
+        <h4 className="text-sm font-semibold text-emerald-300">What helps you here</h4>
         <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-ink">
           {insight.strengths.map((s, i) => (
             <li key={i}>{s}</li>
@@ -14,7 +14,7 @@ export default function FitPanel({ insight }: { insight: Insight }) {
         </ul>
       </div>
       <div>
-        <h4 className="text-sm font-semibold text-rose-800">Gaps and how to close them</h4>
+        <h4 className="text-sm font-semibold text-rose-300">Gaps and how to close them</h4>
         <ul className="mt-1 space-y-1.5 text-sm text-ink">
           {insight.gaps.map((g, i) => (
             <li key={i}>

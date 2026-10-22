@@ -23,7 +23,7 @@ export function MarkedText({
             <mark
               key={i}
               title="You never used this wording. Check that it is true, or reword it."
-              className="rounded bg-pink-200 px-1 text-ink"
+              className="rounded bg-pink-200 px-1 text-black"
             >
               {part}
             </mark>
@@ -31,7 +31,7 @@ export function MarkedText({
         }
         if (part.startsWith("[PLACEHOLDER:")) {
           return (
-            <mark key={i} className="rounded bg-yellow-200 px-1 text-ink">
+            <mark key={i} className="rounded bg-yellow-200 px-1 text-black">
               {part}
             </mark>
           );
@@ -41,7 +41,7 @@ export function MarkedText({
             <mark
               key={i}
               title="You never gave us this number. Check it."
-              className="rounded bg-orange-300 px-1 text-ink"
+              className="rounded bg-orange-300 px-1 text-black"
             >
               {part}
             </mark>
@@ -83,7 +83,7 @@ export default function ApplicationView({
         </div>
       )}
 
-      <section className="rounded-xl border border-line bg-white p-4">
+      <section className="rounded-xl border border-line bg-surface p-4">
         <div className="flex flex-wrap items-center gap-3">
           <h3 className="text-sm font-semibold text-ink">Chance of getting shortlisted</h3>
           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${bandStyle[chance.band]}`}>
@@ -102,21 +102,21 @@ export default function ApplicationView({
       <section>
         <h3 className="text-sm font-semibold text-ink">Statement of Purpose (draft)</h3>
         <p className="mt-1 text-xs text-tarmac">
-          <mark className="rounded bg-yellow-200 px-1">Yellow</mark> = a detail we did not have, so add your own
-          real information. <mark className="rounded bg-orange-300 px-1">Orange</mark> = a number you never gave
-          us, so check it. <mark className="rounded bg-pink-200 px-1">Pink</mark> = dramatic wording you never
+          <mark className="rounded bg-yellow-200 px-1 text-black">Yellow</mark> = a detail we did not have, so add your own
+          real information. <mark className="rounded bg-orange-300 px-1 text-black">Orange</mark> = a number you never gave
+          us, so check it. <mark className="rounded bg-pink-200 px-1 text-black">Pink</mark> = dramatic wording you never
           used, so check it is true or reword it. You are responsible for every sentence you submit.
         </p>
-        <div className="mt-2 whitespace-pre-wrap rounded-xl border border-line bg-white p-4 text-sm leading-relaxed text-ink">
+        <div className="mt-2 whitespace-pre-wrap rounded-xl border border-line bg-surface p-4 text-sm leading-relaxed text-ink">
           <MarkedText text={application.sop} flagged={flagged} phrases={flaggedPhrases} />
         </div>
         {flaggedPhrases.size > 0 && (
-          <p className="mt-2 text-xs text-pink-900">
+          <p className="mt-2 text-xs text-pink-300">
             Wording the AI added that you never used: {[...flaggedPhrases].join(", ")}.
           </p>
         )}
         {flagged.size > 0 && (
-          <p className="mt-2 text-xs text-orange-800">
+          <p className="mt-2 text-xs text-orange-300">
             {flagged.size} number{flagged.size === 1 ? "" : "s"} in this draft did not come from you:{" "}
             {[...flagged].join(", ")}.
           </p>
@@ -132,7 +132,7 @@ export default function ApplicationView({
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-sm text-orange-800">
+          <p className="mt-1 text-sm text-orange-300">
             The AI did not list the facts it used. Read the draft carefully against your profile.
           </p>
         )}

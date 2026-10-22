@@ -69,7 +69,7 @@ export default function SharedPlanPage() {
                   <p className="font-semibold text-ink">
                     {p.university}
                     {chosen?.id === p.id && (
-                      <span className="ml-2 rounded bg-jet px-1.5 py-0.5 text-xs text-white">Chosen</span>
+                      <span className="ml-2 rounded bg-jet px-1.5 py-0.5 text-xs font-semibold text-black">Chosen</span>
                     )}
                   </p>
                   <p className="text-sm text-ink">

@@ -18,7 +18,7 @@ export default function AlumniPaths({
 }) {
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      <div className="rounded-lg border border-amber-400/40 bg-amber-500/15 p-3 text-sm text-amber-300">
         <strong>Illustrative, not real people.</strong> These are typical career paths the AI describes in general
         terms. They are not real alumni, real quotes or real statistics. Talk to real alumni through the
         university&apos;s alumni office or your professional network.
@@ -26,7 +26,7 @@ export default function AlumniPaths({
 
       <div className="grid gap-3 md:grid-cols-3">
         {data.paths.map((p, i) => (
-          <article key={i} className="rounded-xl border border-line bg-white p-4">
+          <article key={i} className="rounded-xl border border-line bg-surface p-4">
             <h3 className="font-semibold text-ink">{p.title}</h3>
             <p className="mt-2 text-sm text-ink">
               <span className="font-medium">Typical employers: </span>
@@ -63,7 +63,7 @@ export default function AlumniPaths({
             const key = `${programId}::${q}`;
             const isSaved = saved.includes(key);
             return (
-              <li key={key} className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-white p-3 text-sm">
+              <li key={key} className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-3 text-sm">
                 <span className="flex-1 text-ink">{q}</span>
                 <button type="button" className={isSaved ? btnPrimary + " !px-3 !py-1.5" : btnSmall} onClick={() => onToggleSave(key)}>
                   {isSaved ? "Saved" : "Save"}

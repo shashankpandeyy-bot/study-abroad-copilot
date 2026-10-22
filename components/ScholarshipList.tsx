@@ -6,8 +6,8 @@ import { scholarshipLink } from "@/lib/verify";
 import { btnPrimary, btnSmall } from "@/lib/ui";
 
 const matchStyle = {
-  likely: "bg-emerald-100 text-emerald-800",
-  maybe: "bg-amber-100 text-amber-800",
+  likely: "bg-emerald-500/15 text-emerald-300",
+  maybe: "bg-amber-500/15 text-amber-300",
   unlikely: "bg-ink/10 text-ink",
 } as const;
 
@@ -31,7 +31,7 @@ export default function ScholarshipList({
         const isSaved = saved.includes(key);
         const link = scholarshipLink(s);
         return (
-          <li key={key} className="rounded-xl border border-line bg-white p-4">
+          <li key={key} className="rounded-xl border border-line bg-surface p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <h3 className="font-semibold text-ink">{s.name}</h3>
@@ -70,6 +70,35 @@ export default function ScholarshipList({
                 <dd className="inline">{s.matchReason}</dd>
               </div>
             </dl>
+            {s.criteria && s.criteria.length > 0 && (
+              <div className="mt-3 rounded-lg border border-line p-3">
+                <p className="text-sm font-semibold text-ink">
+                  Your fit, condition by condition{" "}
+                  <span className="num text-[12px] font-normal text-tarmac">
+                    {s.criteria.filter((c) => c.status === "meets").length} of {s.criteria.length} look met
+                    {s.criteria.some((c) => c.status === "misses") ? `, ${s.criteria.filter((c) => c.status === "misses").length} not met` : ""}
+                  </span>
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {s.criteria.map((c, i) => (
+                    <li key={i} className="flex gap-2 text-sm">
+                      <span
+                        className={`mt-0.5 h-5 w-5 shrink-0 rounded-full text-center text-[12px] font-bold leading-5 ${
+                          c.status === "meets" ? "bg-emerald-500/20 text-emerald-300" : c.status === "misses" ? "bg-rose-500/20 text-rose-300" : "bg-white/10 text-tarmac"
+                        }`}
+                        aria-label={c.status === "meets" ? "Looks met" : c.status === "misses" ? "Not met" : "Not sure"}
+                      >
+                        {c.status === "meets" ? "✓" : c.status === "misses" ? "✕" : "?"}
+                      </span>
+                      <span>
+                        <span className="font-medium text-ink">{c.criterion}.</span> <span className="text-tarmac">{c.why}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-tarmac">Checked against the facts in your profile. A question mark means your profile does not say, so confirm it on the funder&apos;s page.</p>
+              </div>
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="button" className={isSaved ? btnPrimary + " !px-3 !py-1.5" : btnSmall} onClick={() => onToggleSave(key)}>
                 {isSaved ? "Saved" : "Save"}

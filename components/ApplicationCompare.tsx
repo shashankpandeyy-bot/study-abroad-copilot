@@ -82,7 +82,7 @@ export default function ApplicationCompare({
                 {p.university}
                 <span className="block text-xs font-normal text-tarmac">{p.program}</span>
                 {chosenId === p.id && (
-                  <span className="mt-1 inline-block rounded bg-jet px-1.5 py-0.5 text-xs font-medium text-white">
+                  <span className="mt-1 inline-block rounded bg-jet px-1.5 py-0.5 text-xs font-semibold text-black">
                     Your pick
                   </span>
                 )}

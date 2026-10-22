@@ -5,11 +5,16 @@ import { dual } from "@/lib/money";
 import { useState } from "react";
 import { errorText, post } from "@/lib/api";
 import { describeProfileChanges, diffPrograms, sameUniversity } from "@/lib/checks";
+import { languageByCode } from "@/lib/languages";
+import { planImpact } from "@/lib/planImpact";
+import { applyProposal } from "@/lib/profileFields";
+import { useSpeech } from "@/lib/useSpeech";
+import { Mic, Square } from "lucide-react";
 import { BUDGET_MAX, BUDGET_MIN, BUDGET_STEP, SCHOLARSHIP_MAX, SCHOLARSHIP_STEP } from "@/lib/options";
 import { durationOptions } from "@/lib/profileFields";
 import { useApp } from "@/lib/state";
 import type { Program, ScholarshipNeed, StudentProfile, WhatIfResponse } from "@/lib/types";
-import { btnPrimary, btnSecondary, cardClass, categoryStyle, inputClass } from "@/lib/ui";
+import { btnPrimary, btnSecondary, btnSmall, cardClass, categoryStyle, inputClass } from "@/lib/ui";
 import RangeSlider from "./RangeSlider";
 
 const usd = (n: number) => dual(n);
@@ -36,7 +41,7 @@ function Seg<T extends string>({
             aria-pressed={value === o.value}
             onClick={() => onChange(o.value)}
             className={`px-3 py-1.5 text-sm ${
-              value === o.value ? "bg-jet text-white" : "bg-white text-ink hover:bg-ink/5"
+              value === o.value ? "bg-jet font-semibold text-black" : "bg-surface text-ink hover:bg-ink/5"
             }`}
           >
             {o.title}
@@ -51,13 +56,13 @@ function ProgramLine({ p, reason, tone }: { p: Program; reason: string; tone: "a
   return (
     <li
       className={`rounded-lg border p-3 text-sm ${
-        tone === "added" ? "border-emerald-300 bg-emerald-50" : "border-rose-300 bg-rose-50"
+        tone === "added" ? "border-emerald-400/40 bg-emerald-500/15" : "border-rose-400/40 bg-rose-500/15"
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">
         <span
           className={`rounded px-1.5 py-0.5 text-xs font-semibold ${
-            tone === "added" ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
+            tone === "added" ? "bg-emerald-400 text-black" : "bg-rose-400 text-black"
           }`}
         >
           {tone === "added" ? "Added" : "Dropped"}
@@ -76,17 +81,30 @@ function ProgramLine({ p, reason, tone }: { p: Program; reason: string; tone: "a
 }
 
 export default function WhatIfPanel() {
-  const { state, set } = useApp();
+  const { state, set, track } = useApp();
   const [draft, setDraft] = useState<StudentProfile>(state.profile);
   const [result, setResult] = useState<WhatIfResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [sentence, setSentence] = useState("");
+  const [parsing, setParsing] = useState(false);
+  const [understood, setUnderstood] = useState("");
+  const [langCode] = useState(() => {
+    try {
+      return localStorage.getItem("overease:language") ?? "en";
+    } catch {
+      return "en";
+    }
+  });
+  const lang = languageByCode(langCode);
+  const speech = useSpeech(lang.speech);
 
   const shortlist = state.shortlist;
   if (!shortlist) return null;
 
   const baseline = state.shortlistProfile ?? state.profile;
   const changes = describeProfileChanges(baseline, draft);
+  const impact = planImpact({ shortlist: shortlist.programs, selected: state.selected, insights: state.insights }, state.profile, draft);
   const diff = result ? diffPrograms(shortlist.programs, result.programs) : null;
   const relabelled =
     diff?.kept.flatMap((np) => {
@@ -99,6 +117,34 @@ export default function WhatIfPanel() {
   function update<K extends keyof StudentProfile>(key: K, value: StudentProfile[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
     setResult(null);
+  }
+
+  // Say or type the change in your own words, in any language. The AI turns it into profile changes.
+  async function describe() {
+    if (!sentence.trim()) return;
+    setParsing(true);
+    setError("");
+    setUnderstood("");
+    try {
+      const res = await post<{ summary: string; changes: import("@/lib/types").Proposal[] }>("/api/parsechange", { profile: draft, text: sentence, language: lang.name });
+      if (res.changes.length === 0) {
+        setUnderstood(res.summary || "I could not find a clear change in that. Try naming the budget, a score or a country.");
+      } else {
+        setDraft((d) => res.changes.reduce((acc, c) => applyProposal(acc, c), d));
+        setResult(null);
+        setUnderstood(res.summary);
+        track("whatif");
+      }
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setParsing(false);
+    }
+  }
+
+  function dictate() {
+    if (speech.listening) return speech.stop();
+    speech.start((said) => setSentence((s) => (s ? s + " " : "") + said));
   }
 
   async function tryChange() {
@@ -285,6 +331,38 @@ export default function WhatIfPanel() {
         )}
       </div>
 
+      <div className="mt-5 rounded-[10px] border border-line p-4">
+        <label htmlFor="sentence" className="text-sm font-semibold text-ink">
+          Or describe the change in your own words
+        </label>
+        <p className="mt-0.5 text-sm text-tarmac">For example: &quot;my IELTS drops to 6.5 and my budget falls by 3 lakh rupees&quot;. Any language works.</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <input
+            id="sentence"
+            lang={lang.code}
+            value={sentence}
+            onChange={(e) => setSentence(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && void describe()}
+            placeholder="What if..."
+            className={inputClass + " min-w-[14rem] flex-1"}
+          />
+          {speech.supported && (
+            <button type="button" onClick={dictate} aria-pressed={speech.listening} aria-label={speech.listening ? "Stop" : `Speak in ${lang.name}`} className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-bold text-black ${speech.listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}>
+              {speech.listening ? <Square className="h-4 w-4" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
+            </button>
+          )}
+          <button type="button" className={btnSmall} onClick={describe} disabled={parsing || !sentence.trim()}>
+            {parsing ? "Reading..." : "Apply to the sliders"}
+          </button>
+        </div>
+        {speech.heard && <p className="mt-2 text-sm text-tarmac" lang={lang.code}>{speech.heard}</p>}
+        {understood && (
+          <p className="mt-2 text-sm text-ink" lang={lang.code} aria-live="polite">
+            {understood}
+          </p>
+        )}
+      </div>
+
       <div className="mt-5 rounded-lg bg-ink/5 p-3 text-sm">
         {changes.length === 0 ? (
           <p className="text-tarmac">Change something above to try it. Your shortlist matches your profile now.</p>
@@ -304,6 +382,18 @@ export default function WhatIfPanel() {
         )}
       </div>
 
+      {impact.lines.length > 0 && (
+        <div className="mt-4 rounded-[10px] border border-main/30 bg-main-tint p-4" aria-live="polite">
+          <p className="text-sm font-semibold text-main-ink">What this does to your whole plan</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink">
+            {impact.lines.map((l, i) => (
+              <li key={i}>{l}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-tarmac">Worked out instantly from your numbers, with no AI. Programs you have not analysed yet are not included.</p>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap gap-3">
         <button type="button" className={btnPrimary} disabled={busy || changes.length === 0} onClick={tryChange}>
           {busy ? "Checking..." : "Try this change"}
@@ -316,7 +406,7 @@ export default function WhatIfPanel() {
       </div>
 
       {error && (
-        <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <p role="alert" className="mt-3 rounded-lg border border-red-400/40 bg-red-500/15 p-3 text-sm text-red-300">
           {error}
         </p>
       )}

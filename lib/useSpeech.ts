@@ -32,7 +32,7 @@ export const MIC_ERRORS: Record<string, string> = {
 };
 
 // Listens for one stretch of speech in the given language and hands the final text to a callback.
-export function useSpeech(speechLang: string) {
+export function useSpeech(speechLang: string, continuous = true) {
   const [supported] = useState(() => Boolean(recognitionCtor()));
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
@@ -51,7 +51,7 @@ export function useSpeech(speechLang: string) {
       const rec = new Ctor();
       rec.lang = speechLang;
       rec.interimResults = true;
-      rec.continuous = true;
+      rec.continuous = continuous;
       let finalText = "";
       rec.onresult = (e) => {
         let interim = "";
@@ -80,7 +80,7 @@ export function useSpeech(speechLang: string) {
         setError("Could not start the microphone. Try again.");
       }
     },
-    [speechLang]
+    [speechLang, continuous]
   );
 
   const stop = useCallback(() => recRef.current?.stop(), []);

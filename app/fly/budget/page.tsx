@@ -118,7 +118,7 @@ function BudgetForm({ dest }: { dest: Destination }) {
             <p className="text-base font-semibold text-ink">Where this sits for {dest.name}</p>
             <div className="relative mt-5 h-3 rounded-full bg-ink/10" role="img" aria-label={`Typical range ${dualRange(lo, hi)}. Your budget is ${dual(Math.round(usd))}.`}>
               <div className="absolute inset-y-0 rounded-full bg-main/40" style={{ left: pct(lo), width: `calc(${pct(hi)} - ${pct(lo)})` }} />
-              <div className="absolute -top-1.5 h-6 w-1 -translate-x-1/2 rounded bg-ink" style={{ left: pct(usd) }} />
+              <div className="absolute -top-1.5 h-6 w-1 -translate-x-1/2 rounded bg-white" style={{ left: pct(usd) }} />
             </div>
             <div className="mt-2 flex justify-between text-xs text-tarmac">
               <span className="num">$0</span>
@@ -145,7 +145,7 @@ function BudgetForm({ dest }: { dest: Destination }) {
           <button
             type="button"
             onClick={next}
-            className="inline-flex min-h-12 items-center rounded-[10px] bg-main px-6 text-[1.0625rem] font-medium text-white transition-colors hover:brightness-110 active:translate-y-px"
+            className="inline-flex min-h-12 items-center rounded-full bg-main px-7 text-[1.0625rem] font-bold text-black transition-colors hover:brightness-110 active:translate-y-px"
           >
             Continue to check-in
           </button>

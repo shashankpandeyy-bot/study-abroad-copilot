@@ -151,6 +151,7 @@ export default function Landing() {
       <main className="flex-1">
         {/* 1. Hero */}
         <section ref={ref} className="relative isolate overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem]" style={{ background: "linear-gradient(180deg, rgb(30 215 96 / 0.30) 0%, #000 78%)" }} />
           {!reduce && LAYERS.map((l, i) => <Layer key={i} speed={l.speed} syms={l.syms} progress={scrollYProgress} />)}
           {reduce && (
             <div aria-hidden className="absolute inset-0">
@@ -171,7 +172,7 @@ export default function Landing() {
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   href="/fly"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-[10px] bg-jet px-6 text-[1.0625rem] font-medium text-white transition-colors hover:bg-jet-deep active:translate-y-px"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full bg-jet px-7 text-[1.0625rem] font-bold text-black transition-colors hover:bg-jet-deep active:translate-y-px"
                 >
                   Choose your country <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
@@ -216,7 +217,7 @@ export default function Landing() {
                       <span className="text-[11px] text-tarmac">Gate</span>
                       <span className="num text-3xl text-ink">12</span>
                       <span className="mt-2 text-[11px] text-tarmac">Fit</span>
-                      <span className="num rounded bg-ink px-2 py-0.5 text-[11px] text-flap">MATCH</span>
+                      <span className="num rounded bg-board px-2 py-0.5 text-[11px] text-flap">MATCH</span>
                     </div>
                   </div>
                 </div>
@@ -335,7 +336,7 @@ export default function Landing() {
               <h2 id="journey" className="sr-only">
                 Journey
               </h2>
-              <Heading title="Nine stops. A stamp for every one." body="Pick a country, set a budget, check in, choose programs, pick a draft, practise your English, find funding, plan the deadlines. Your rank rises as you go, from Tourist to Arrived." />
+              <Heading title="Ten stops. A stamp for every one." body="Pick a country, set a budget, check in, choose programs, pick a draft, practise your English, rehearse an interview, find funding, plan the deadlines. Your rank rises as you go, from Tourist to Arrived." />
               <ol className="mt-6 flex flex-wrap gap-2 text-sm">
                 {["Tourist", "Boarding", "In the air", "Landing", "Arrived"].map((r, i) => (
                   <li key={r} className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-ink">
@@ -441,13 +442,13 @@ export default function Landing() {
         </section>
 
         {/* 8. Final call */}
-        <section className="bg-ink text-white">
+        <section className="bg-surface-2 text-white">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-4 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div className="max-w-xl">
               <h2 className="text-[1.875rem] font-semibold leading-[1.1] sm:text-[2.75rem]">Ready to board?</h2>
               <p className="mt-3 text-white/75">Your first shortlist takes about five minutes. Nothing leaves this browser except the questions we ask the AI.</p>
             </div>
-            <Link href="/fly" className="inline-flex min-h-12 items-center gap-2 rounded-[10px] bg-flap px-6 text-[1.0625rem] font-semibold text-ink transition-transform hover:scale-[1.02] active:scale-95">
+            <Link href="/fly" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-jet px-7 text-[1.0625rem] font-bold text-black transition-transform hover:scale-[1.02] active:scale-95">
               Choose your country <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>

@@ -28,8 +28,8 @@ type Coaching = {
 type Translation = { english: string; explanation: string; words: { english: string; meaning: string }[] };
 
 const STATUS_ICON = {
-  ok: <Check className="h-4 w-4 text-emerald-700" aria-label="Passed" />,
-  warn: <AlertTriangle className="h-4 w-4 text-amber-700" aria-label="Check this" />,
+  ok: <Check className="h-4 w-4 text-emerald-400" aria-label="Passed" />,
+  warn: <AlertTriangle className="h-4 w-4 text-amber-400" aria-label="Check this" />,
   fail: <X className="h-4 w-4 text-stamp" aria-label="Needs fixing" />,
 } as const;
 
@@ -101,7 +101,7 @@ function Workspace({ program, others }: { program: Program; others: Program[] })
               type="button"
               aria-pressed={mode === k}
               onClick={() => setMode(k)}
-              className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors ${mode === k ? "bg-ink text-white" : "text-ink hover:bg-ink/5"}`}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors ${mode === k ? "bg-white text-black" : "text-ink hover:bg-ink/5"}`}
             >
               <Icon className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">{label}</span>
               <span className="sm:hidden">{k === "read" ? "Read" : "Write"}</span>
@@ -151,8 +151,8 @@ function ReadMode({
     <main className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 py-8 lg:grid-cols-[1fr_22rem] lg:px-8">
       <article>
         <p className="text-sm text-tarmac">
-          <mark className="rounded bg-yellow-200 px-1">Yellow</mark> is a blank for you to fill. <mark className="rounded bg-orange-300 px-1">Orange</mark> is a
-          number you never gave us. <mark className="rounded bg-pink-200 px-1">Pink</mark> is wording you never used.
+          <mark className="rounded bg-yellow-200 px-1 text-black">Yellow</mark> is a blank for you to fill. <mark className="rounded bg-orange-300 px-1 text-black">Orange</mark> is a
+          number you never gave us. <mark className="rounded bg-pink-200 px-1 text-black">Pink</mark> is wording you never used.
         </p>
         <div className="mt-5 whitespace-pre-wrap rounded-[10px] border border-line bg-surface p-6 text-[1.1875rem] leading-[1.85] text-ink sm:p-10">
           <MarkedText text={sop} flagged={flagged} phrases={phrases} />
@@ -202,12 +202,12 @@ function ReadMode({
           </ul>
         </section>
 
-        <section className="rounded-[10px] bg-ink p-5 text-white">
+        <section className="rounded-[10px] bg-surface-2 p-5 text-white">
           <h2 className="text-base font-semibold">Make it yours</h2>
           <p className="mt-1 text-sm text-white/80">
             Readers can tell when a statement is not in the student&apos;s own voice. We will ask you questions and coach you to write each part yourself, in any language you like.
           </p>
-          <button type="button" onClick={onWrite} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-[10px] bg-flap px-5 font-semibold text-ink">
+          <button type="button" onClick={onWrite} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-flap px-5 font-bold text-black">
             <PenLine className="h-4 w-4" aria-hidden /> Write it myself
           </button>
         </section>
@@ -217,7 +217,7 @@ function ReadMode({
 }
 
 function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
-  const { state, set } = useApp();
+  const { state, set, track } = useApp();
   const own = state.ownDrafts[program.id]?.sections ?? {};
   const [active, setActive] = useState(SOP_SECTIONS[0].key);
   const section = SOP_SECTIONS.find((s) => s.key === active) ?? SOP_SECTIONS[0];
@@ -242,13 +242,15 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const speech = useSpeech(lang.speech);
 
-  const setText = (key: string, value: string) =>
+  const setText = (key: string, value: string) => {
+    track("draft");
     set((prev) => ({
       ownDrafts: {
         ...prev.ownDrafts,
         [program.id]: { sections: { ...(prev.ownDrafts[program.id]?.sections ?? {}), [key]: value }, updatedAt: new Date().toISOString() },
       },
     }));
+  };
 
   const total = SOP_SECTIONS.reduce((n, s) => n + wordCount(own[s.key] ?? ""), 0);
   const target = SOP_SECTIONS.reduce((n, s) => n + s.minWords, 0);
@@ -332,7 +334,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
                     s.key === active ? "bg-main-tint font-medium text-main-ink" : "text-ink hover:bg-ink/5"
                   }`}
                 >
-                  <span className={`num grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] ${done ? "bg-main text-white" : "border border-ink/25 text-tarmac"}`}>
+                  <span className={`num grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] ${done ? "bg-main font-semibold text-black" : "border border-ink/25 text-tarmac"}`}>
                     {done ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
                   </span>
                   <span className="min-w-0">
@@ -397,7 +399,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
               type="button"
               onClick={toggleMic}
               aria-pressed={speech.listening}
-              className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-medium text-white ${speech.listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-bold text-black ${speech.listening ? "bg-stamp" : "bg-jet hover:bg-jet-deep"}`}
             >
               {speech.listening ? <Square className="h-4 w-4" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
               {speech.listening ? "Stop" : `Speak in ${lang.name}`}
@@ -475,7 +477,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
             <label htmlFor="english" className="text-sm font-medium text-ink">
               Your draft in English
             </label>
-            <span className={`num text-[12px] ${words >= section.minWords ? "text-emerald-700" : "text-tarmac"}`}>
+            <span className={`num text-[12px] ${words >= section.minWords ? "text-emerald-400" : "text-tarmac"}`}>
               {words} / {section.minWords} words
             </span>
           </div>
@@ -496,7 +498,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" aria-live="polite">
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                orig.level === "own" ? "bg-emerald-100 text-emerald-900" : orig.level === "close" ? "bg-amber-100 text-amber-900" : "bg-stamp-tint text-stamp"
+                orig.level === "own" ? "bg-emerald-500/15 text-emerald-300" : orig.level === "close" ? "bg-amber-500/15 text-amber-300" : "bg-stamp-tint text-stamp"
               }`}
             >
               {orig.label}
@@ -544,7 +546,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
           <div className="space-y-4 text-sm" lang={lang.code}>
             {fb.strengths.length > 0 && (
               <div>
-                <p className="font-semibold text-emerald-800">What is working</p>
+                <p className="font-semibold text-emerald-300">What is working</p>
                 <ul className="mt-1 list-disc space-y-1 pl-5 text-ink">
                   {fb.strengths.map((s, i) => (
                     <li key={i}>{s}</li>
@@ -558,7 +560,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
                 <ul className="mt-2 space-y-3">
                   {fb.issues.map((it, i) => (
                     <li key={i} className="rounded-lg border border-line p-3">
-                      {it.quote && <p className="rounded bg-yellow-100 px-1.5 py-0.5 text-ink">&ldquo;{it.quote}&rdquo;</p>}
+                      {it.quote && <p className="rounded bg-yellow-200 px-1.5 py-0.5 text-black">&ldquo;{it.quote}&rdquo;</p>}
                       <p className="mt-1.5 text-ink">{it.problem}</p>
                       <p className="mt-1 text-tarmac">{it.tip}</p>
                     </li>
@@ -590,7 +592,7 @@ function WriteMode({ program, aiSop }: { program: Program; aiSop: string }) {
           </button>
           {peek && (
             <div className="mt-3">
-              <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-900">Use it as a guide to what a good draft covers. Copying it would not be your own voice.</p>
+              <p className="rounded-lg bg-amber-500/15 p-2 text-xs text-amber-300">Use it as a guide to what a good draft covers. Copying it would not be your own voice.</p>
               <p className="mt-2 max-h-72 select-none overflow-y-auto whitespace-pre-wrap text-sm text-tarmac">{aiSop}</p>
             </div>
           )}

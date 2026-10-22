@@ -102,6 +102,7 @@ export type Scholarship = {
   typicalValue: string;
   amountLowUsd: number | null;
   amountHighUsd: number | null;
+  criteria?: ScholarshipCriterion[]; // each condition checked against the student's own facts
   eligibility: string;
   match: "likely" | "maybe" | "unlikely";
   matchReason: string;
@@ -150,6 +151,8 @@ export type Task = {
   suggestedDate: string;
   confirmedDate: string;
   done: boolean;
+  plannedDate?: string; // set by "plan from my deadline". Sits between the typical date and a date the student confirms.
+  custom?: boolean; // added by the app from a gap check, not from the standard checklist
 };
 
 export type ProfileField = keyof StudentProfile;
@@ -195,3 +198,43 @@ export type CoachAttempt = {
   overall: number; // worked out in code from the five scores
   focus: string; // the one thing to practise next
 };
+
+export type ScholarshipCriterion = { criterion: string; status: "meets" | "unclear" | "misses"; why: string };
+
+// ---------- Gap analysis, application kit, interview, progress ----------
+
+export type GapStatus = "met" | "partial" | "missing" | "unknown";
+export type GapItem = {
+  requirement: string;
+  status: GapStatus;
+  evidence: string; // what in the student's profile supports the verdict
+  action: string; // one concrete next step, or empty when met
+  effort: "hours" | "days" | "weeks" | "months";
+};
+export type GapReport = { summary: string; items: GapItem[]; createdAt: string; grounded: boolean; sources: Source[] };
+
+export type KitDocument = { name: string; why: string; who: string; leadDays: number; tip: string };
+export type KitEmail = { purpose: string; to: string; subject: string; body: string; flagged?: string[] };
+export type WorkflowKit = { documents: KitDocument[]; emails: KitEmail[]; createdAt: string };
+
+export const INTERVIEW_SKILLS = ["relevance", "specificity", "consistency", "communication"] as const;
+export type InterviewSkill = (typeof INTERVIEW_SKILLS)[number];
+export type InterviewScores = Record<InterviewSkill, number>;
+export type InterviewTurn = { role: "interviewer" | "student"; text: string; note?: string };
+export type InterviewSession = {
+  id: string;
+  at: string;
+  programId: string;
+  university: string;
+  turns: InterviewTurn[];
+  scores: InterviewScores;
+  overall: number;
+  strengths: string[];
+  improve: string[];
+  prepare: string[];
+};
+
+export type ActivityKind = "coach" | "interview" | "draft" | "task" | "choose" | "chat" | "gap" | "kit" | "whatif" | "checkin";
+export type ActivityEvent = { at: string; kind: ActivityKind };
+
+export type WeeklyPlan = { headline: string; days: { day: string; task: string }[]; encouragement: string };

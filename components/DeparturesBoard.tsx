@@ -31,7 +31,7 @@ export default function DeparturesBoard({ programs, selected }: { programs: Prog
               <button
                 type="button"
                 onClick={() => jump(p.id)}
-                className="grid min-h-14 w-full grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/5 focus-visible:outline-offset-[-3px] sm:gap-5 sm:px-6"
+                className="grid min-h-14 w-full grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-2/5 focus-visible:outline-offset-[-3px] sm:gap-5 sm:px-6"
                 aria-label={`${p.university}, ${p.program}, ${STATUS[p.category].toLowerCase()}. Go to details.`}
               >
                 {code ? <Flag code={code} className="w-8" /> : <span className="block h-[22px] w-8 rounded-[3px] bg-white/15" aria-hidden />}

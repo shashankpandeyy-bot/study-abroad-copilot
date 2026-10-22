@@ -8,6 +8,7 @@ import { btnSecondary, categoryStyle } from "@/lib/ui";
 import CityArt from "./CityArt";
 import Flag from "./Flag";
 import CostPanel from "./CostPanel";
+import GapPanel from "./GapPanel";
 import FitPanel from "./FitPanel";
 import SourcesPanel from "./SourcesPanel";
 
@@ -74,7 +75,7 @@ export default function ProgramCard({
           disabled={blocked && !selected}
           className={`min-h-11 shrink-0 rounded-[10px] border px-4 text-sm font-medium ${
             selected
-              ? "border-main bg-main text-white"
+              ? "border-main bg-main font-semibold text-black"
               : "border-ink/25 text-ink hover:bg-ink/5 disabled:cursor-not-allowed disabled:opacity-50"
           }`}
         >
@@ -110,7 +111,7 @@ export default function ProgramCard({
                 {busy ? "Analysing..." : "Analyse this program"}
               </button>
               {error && (
-                <p role="alert" className="mt-2 text-sm text-red-700">
+                <p role="alert" className="mt-2 text-sm text-red-300">
                   {error}
                 </p>
               )}
@@ -122,6 +123,13 @@ export default function ProgramCard({
               <CostPanel cost={insight.cost} profile={profile} />
             </>
           )}
+        </div>
+      </details>
+
+      <details className="mt-3 rounded-lg border border-line p-3">
+        <summary className="cursor-pointer text-sm font-medium text-jet-deep">Requirements check: what is missing for you</summary>
+        <div className="mt-3">
+          <GapPanel program={program} />
         </div>
       </details>
 

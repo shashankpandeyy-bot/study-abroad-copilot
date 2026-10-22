@@ -5,9 +5,9 @@ import { dualRange as usdRange } from "@/lib/money";
 import type { CostEstimate, StudentProfile } from "@/lib/types";
 
 const FIT_TEXT = {
-  fits: { label: "Fits your budget", style: "bg-emerald-100 text-emerald-800" },
-  stretch: { label: "A stretch", style: "bg-amber-100 text-amber-800" },
-  over: { label: "Over your budget", style: "bg-rose-100 text-rose-800" },
+  fits: { label: "Fits your budget", style: "bg-emerald-500/15 text-emerald-300" },
+  stretch: { label: "A stretch", style: "bg-amber-500/15 text-amber-300" },
+  over: { label: "Over your budget", style: "bg-rose-500/20 text-rose-300" },
   unknown: { label: "Set a budget to compare", style: "bg-ink/10 text-ink" },
 } as const;
 
@@ -47,7 +47,7 @@ export default function CostPanel({ cost, profile }: { cost: CostEstimate; profi
         )}
       </dl>
       {s.gapPerYear && s.gapPerYear.high > 0 && s.gapTotal && (
-        <p className="mt-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">
+        <p className="mt-2 rounded-lg bg-amber-500/15 p-2 text-sm text-amber-300">
           Above your maximum by {usdRange(s.gapPerYear.low, s.gapPerYear.high)} per year, or {usdRange(s.gapTotal.low, s.gapTotal.high)} in total.
           {loan
             ? ` Borrowing that at ${profile.loanRatePct}% over ${profile.loanYears} years would cost about ${usdRange(loan.monthlyLow, loan.monthlyHigh)} a month.`

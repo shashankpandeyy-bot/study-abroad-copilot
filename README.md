@@ -143,7 +143,22 @@ Real problems found while building, and what the app does about them.
 - **OVEREASE asks your language first,** and when you speak or write in it, shows what you said in English with word meanings.
 - **Next best step.** A plain-code workflow reads your whole journey and names the one most useful next action, with the reason, on every page.
 
+## Version 7 additions
+
+- **Black, Spotify-style theme.** A pure black base, charcoal panels, white text, green pill buttons, and the chosen country's colour glowing at the top of every page, the way an album's colour fills a playlist page. Every country palette is checked for AA contrast (`node scripts/check-theme-contrast.mjs`).
+- **Requirements gap check.** On each program card, the student's real profile is compared with what the program usually requires, requirement by requirement (met, partly, missing, not sure), with the evidence from their profile and one concrete action each. One tap adds those actions to the plan. It uses the AI's general knowledge, and labels it that way. If `GROUNDING=on` and the key allows Google Search, it reads the official pages first and says so.
+- **Application automation.** The plan page has a kit for each program: documents with realistic lead times, and three ready-to-send emails (a recommendation request, a transcript request, and an admissions question about the student's biggest gap) with `[placeholders]` and a warning on any number the student never gave. A "plan from my deadline" button works backwards from a submission date the student confirmed and sets a planned date for every task they have not confirmed themselves. Dates already in the past become today and are marked tight.
+- **Mock interview.** An interviewer who has read the student's own statement asks five questions about their real projects and numbers and probes their real gaps. It can read each question aloud and listen for the answer hands-free. The report scores relevance, specificity, consistency and communication. A plain-code check lowers consistency for any number the student says that is not in their application.
+- **Whole-plan what-if.** The what-if panel takes a plain sentence in any language ("my IELTS drops to 6.5 and my budget falls by 3 lakh rupees"). The AI only reports what was said about money. **The currency conversion and the sum are done in code**, because an earlier version let the AI do the arithmetic and it got it wrong. A live card then shows what the change does to the whole plan: profile strength, whether each analysed program still fits the budget, the loan payment on the gap, and which dates move.
+- **Funding that explains itself.** Each scholarship is checked condition by condition against the student's own facts, with "not sure" where their profile is silent.
+- **Progress coach.** A progress page with an activity heatmap, a streak, and plain-code nudges for going quiet, an English plateau, and deadlines due soon. An AI weekly plan is written from numbers only. It never sees the student's statement or answers.
+- **Voice mode.** OVEREASE can run hands-free: it listens, answers, speaks the answer, and listens again. It can also read the English version aloud. It pauses itself if it hears nothing twice.
+
 ## Known gaps
+
+- **Live official pages are still not read.** Google Search grounding is refused on the free key, so the requirements check relies on the AI's general knowledge and says so on screen.
+- **Voice was verified with a simulated speech engine, not a real microphone.** With the simulation, the app listened in the right language, answered in the right script, spoke with the right voice setting, read the English aloud on request, paused on silence, and ran a full hands-free interview. A real microphone, real accents and real device voices still need a person to try them.
+- **The mock interview and weekly plan are AI judgement.** The overall scores and the consistency cap are worked out in code, but the AI still decides how good each answer was.
 
 - **The writing coach and English coach are AI judgement.** They are checked in code (quotes must really appear in your text, scores must be in range, the grammar score is capped by the error count), but they can still be wrong or too kind. Treat them as a practice partner, not an examiner.
 - **Originality is a word-overlap check,** not plagiarism detection. It only compares your text with this app's AI draft.
@@ -224,6 +239,10 @@ lib/originality.ts    how much of your text matches the AI draft
 lib/coach.ts          English coach scoring maths, streaks and trends
 lib/nextAction.ts     the next-best-step workflow
 lib/sopSections.ts    the six parts of a statement
+lib/planImpact.ts      what a profile change does to the whole plan
+lib/progress.ts       activity, streaks, stall detection and nudges
+lib/interview.ts      interview scoring and the consistency check
+lib/countryNames.ts   one spelling per country
 lib/ai.ts             the only file that talks to Gemini (retry, errors, structured output)
 lib/prompts.ts        what the AI is asked, and the data shapes it must answer in
 lib/validate.ts       input cleaning and checks on every AI reply

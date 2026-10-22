@@ -144,6 +144,8 @@ const PAGE_GUIDE: Record<string, string> = {
   alumni: "typical paths of past students, written by AI as examples, not real people",
 };
 
+const VALUE_FORMATS = `budgetUsd, loanAmountUsd and loanYears and loanRatePct are plain numbers (USD for money). risk, riskMin and riskMax are each low, balanced or high. When the student names a range of risk (for example "balanced to high" or "safe to ambitious"), propose riskMin and riskMax as two proposals. Use risk only when they name one single level. scholarshipNeed is essential, helpful or none. englishStatus and entranceStatus are taken, planned or none. loanWanted is yes or no. currentLevel is one of highschool, bachelor_in_progress, bachelor_done, master, working. gradeScale is one of cgpa10, gpa4, percent, uk, other. studyMode is full or part. teachingLanguage is english or any. thesisPreference is thesis, coursework or either. workYears is 0, 1-2, 3-5 or 5+. hasResearch is yes or no. interests, priorities and fundingSources are comma-separated lists. budgetMinUsd, scholarshipMinUsd and scholarshipMaxUsd are plain numbers in USD per year. englishPlanned and entrancePlanned are YYYY-MM. Everything else is plain text.`;
+
 export function chatSystem(page: string, language = "English"): string {
   const where = PAGE_GUIDE[page] ? ` This page is for: ${PAGE_GUIDE[page]}.` : "";
   return `You are the student's friendly, honest study-abroad advisor inside the Study Abroad Co-Pilot app. The student is currently on the "${page}" page.${where} Press reply with your answer.
@@ -157,7 +159,7 @@ export function chatSystem(page: string, language = "English"): string {
 - Write short spoken-style sentences, with no markdown, bullet points, tables or emoji.
 - Answer in plain language, in under 120 words unless they ask for more detail. When the student is speaking, keep it under 70 words. Use the profile and shortlist you are given. If you do not know something, say so.
 - When the student STATES a new fact about themselves as true (budget, scores, countries, grades, goals, loan, risk or scholarship need), add it to "proposals": the exact profile field, the new value as text, and a short reason. The field must be one of: ${PROFILE_FIELD_LIST}.
-- Value formats: budgetUsd, loanAmountUsd and loanYears and loanRatePct are plain numbers (USD for money). risk, riskMin and riskMax are each low, balanced or high. When the student names a range of risk (for example "balanced to high" or "safe to ambitious"), propose riskMin and riskMax as two proposals. Use risk only when they name one single level. scholarshipNeed is essential, helpful or none. englishStatus and entranceStatus are taken, planned or none. loanWanted is yes or no. currentLevel is one of highschool, bachelor_in_progress, bachelor_done, master, working. gradeScale is one of cgpa10, gpa4, percent, uk, other. studyMode is full or part. teachingLanguage is english or any. thesisPreference is thesis, coursework or either. workYears is 0, 1-2, 3-5 or 5+. hasResearch is yes or no. interests, priorities and fundingSources are comma-separated lists. budgetMinUsd, scholarshipMinUsd and scholarshipMaxUsd are plain numbers in USD per year. englishPlanned and entrancePlanned are YYYY-MM. Everything else is plain text.
+- Value formats: ${VALUE_FORMATS}
 - Do not propose changes for hypotheticals ("what if...", "should I...") or general questions. Instead tell them they can try it in the What-if panel on the Profile page.
 - You never change anything yourself. The student must press Apply on a proposal. So word proposals as suggestions, for example "I suggest updating your budget to USD 50,000 — press Apply to confirm". Never say "I've updated", "I've changed" or "done".
 - Do not write whole applications here. Point them to the Applications page.
@@ -195,6 +197,7 @@ export function scholarshipsSystem(): string {
 - List 3 to 5 funding options: university scholarships, government or country schemes, and external funders. Only list ones you are confident really exist. If you know fewer, list fewer. Never invent a scholarship name.
 - typicalValue and eligibility must be described in words as typical (for example "often covers part of tuition and a living stipend"), never as exact or guaranteed. Do not give deadlines or web addresses.
 - amountLowUsd and amountHighUsd are an optional rough range of the typical value in USD per year, rounded to the nearest 500, for example 3000 and 9000. Give BOTH or neither. Leave both out when you do not know. Never give a single exact figure, and never invent one. They are estimates and the student will be told to verify them.
+- criteria: 3 to 5 of the funder's typical conditions (for example nationality, academic level, field, work experience, financial need, language). For EACH give status (meets, unclear or misses) compared with THIS student's profile, and why in one short sentence that cites the student's own fact. Use unclear when the profile does not say. Never assume a fact the profile does not state.
 - match is about ELIGIBILITY only, not the chance of winning (most scholarships are competitive): likely, maybe or unlikely eligible, compared with THIS student. The student's home country matters for many schemes. If it is not given, say so in matchReason and do not assume one.
 - note: one sentence telling the student to confirm every detail on the official scholarship page.
 
@@ -413,10 +416,18 @@ export const submitScholarshipsTool: ToolDef = {
             amountLowUsd: { type: "number" },
             amountHighUsd: { type: "number" },
             eligibility: { type: "string" },
+            criteria: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: { criterion: { type: "string" }, status: { type: "string", enum: ["meets", "unclear", "misses"] }, why: { type: "string" } },
+                required: ["criterion", "status", "why"],
+              },
+            },
             match: { type: "string", enum: ["likely", "maybe", "unlikely"] },
             matchReason: { type: "string" },
           },
-          required: ["name", "provider", "typicalValue", "eligibility", "match", "matchReason"],
+          required: ["name", "provider", "typicalValue", "eligibility", "criteria", "match", "matchReason"],
         },
       },
       note: { type: "string" },
@@ -684,5 +695,257 @@ export const submitEnglishScoreTool: ToolDef = {
       progressNote: { type: "string" },
     },
     required: ["scores", "strengths", "corrections", "focus", "modelAnswer", "drill", "progressNote"],
+  },
+};
+
+
+// ---------- Gap analysis ----------
+
+export function gapSystem(grounded: boolean): string {
+  return `You are an admissions requirements analyst. Compare the student's real profile with what this program typically requires. Press submit_gap_report.
+- List 6 to 9 requirements the program typically has: academic prerequisites (name the subject areas or credits), minimum grades, English level, entrance tests, relevant experience, documents, and a portfolio or projects where they are common.
+- For each give status: met (the profile clearly shows it), partial (some evidence, but short of typical), missing (the profile shows none), or unknown (the profile does not say).
+- evidence: cite a fact from <student_profile> using the student's own words or numbers. For unknown, say what the profile is missing.
+- action: ONE concrete next step (a type of course to take, a test to book, a document to request). Empty when the status is met.
+- effort: how long the action takes: hours, days, weeks or months.
+- summary: two sentences naming the one or two biggest gaps and the single most important next step.
+- Describe every requirement as typical ("usually", "often"). Never state one as certain.${grounded ? "\n- Text from official pages is inside <official_pages>. Prefer it over memory, and say in evidence when a requirement comes from it." : ""}
+
+${HONESTY_RULE}
+${todayRule()}
+${DATA_RULE}`;
+}
+
+export function gapUser(profile: StudentProfile, program: Program, pages: string): string {
+  return `${formatProfile(profile)}
+
+Program: ${program.program} at ${program.university} (${program.country}).
+${pages ? `\n<official_pages>\n${pages}\n</official_pages>\n` : ""}
+Respond now.`;
+}
+
+export function gapSearchPrompt(program: Program): string {
+  return `Find the official admission requirements for ${program.program} at ${program.university} (${program.country}) for international students: required prerequisite subjects or credits, minimum grade, English test scores, entrance tests, work experience, and application documents. Quote what the official pages say, and say plainly what you could not find.`;
+}
+
+export const submitGapReportTool: ToolDef = {
+  name: "submit_gap_report",
+  description: "Submit the requirement-by-requirement comparison of the student's profile with the program.",
+  parameters: {
+    type: "object",
+    properties: {
+      summary: { type: "string" },
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            requirement: { type: "string" },
+            status: { type: "string", enum: ["met", "partial", "missing", "unknown"] },
+            evidence: { type: "string" },
+            action: { type: "string" },
+            effort: { type: "string", enum: ["hours", "days", "weeks", "months"] },
+          },
+          required: ["requirement", "status", "evidence", "action", "effort"],
+        },
+      },
+    },
+    required: ["summary", "items"],
+  },
+};
+
+// ---------- Application kit ----------
+
+export function kitSystem(): string {
+  return `You prepare an application kit for ONE program. Press submit_kit.
+- documents: 6 to 9 documents the student will need for this kind of program (for example transcripts, degree certificate, CV, statement of purpose, recommendation letters, English score report, passport, proof of funds, portfolio). For each: name, why (one sentence), who (who provides it, or what the student does), leadDays (a realistic number of days to obtain it), and tip (one practical tip).
+- emails: write exactly 3 ready-to-send emails in the student's own voice, in English, short and polite, each under 150 words:
+  1. Asking a professor or manager for a recommendation letter. Mention the program, offer to share a CV and a draft statement, and ask for the deadline.
+  2. Asking the student's university registrar for official transcripts.
+  3. A question to the program's admissions office. Use the biggest missing or partial requirement in <gap_summary> if there is one, otherwise ask about the English requirement.
+  Each email has purpose, to (a role such as "Your professor or manager"), subject and body.
+- Use only facts in <student_profile>. Never invent a name, grade, date or number. Write unknown details as placeholders in square brackets, such as [Professor name] or [deadline].
+
+${HONESTY_RULE}
+${todayRule()}
+${DATA_RULE}`;
+}
+
+export function kitUser(profile: StudentProfile, program: Program, gapSummary: string): string {
+  return `${formatProfile(profile)}
+
+Program: ${program.program} at ${program.university} (${program.country}).
+
+<gap_summary>
+${gapSummary || "(no gap check has been run)"}
+</gap_summary>
+
+Respond now.`;
+}
+
+export const submitKitTool: ToolDef = {
+  name: "submit_kit",
+  description: "Submit the document list and the three emails.",
+  parameters: {
+    type: "object",
+    properties: {
+      documents: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { name: { type: "string" }, why: { type: "string" }, who: { type: "string" }, leadDays: { type: "number" }, tip: { type: "string" } },
+          required: ["name", "why", "who", "leadDays", "tip"],
+        },
+      },
+      emails: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { purpose: { type: "string" }, to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } },
+          required: ["purpose", "to", "subject", "body"],
+        },
+      },
+    },
+    required: ["documents", "emails"],
+  },
+};
+
+// ---------- Mock interview ----------
+
+export function interviewSystem(program: Program, answered: number, maxAnswers: number): string {
+  const last = answered >= maxAnswers;
+  return `You are an admissions interviewer for ${program.program} at ${program.university}. You run a mock interview, one question at a time. Press submit_interview_turn.
+- You know the student's profile and their application statement (in the tags). Ask questions that test THEIR statement: ask about specific claims, projects and numbers they wrote, and make them go deeper (decisions, trade-offs, what they would do differently).
+- Probe real weak spots: gaps in the program's usual background, anything in the statement that does not match the profile, and vague claims.
+- Also ask why this program and why this country, and about goals, but make each question specific to this student.
+- Never ask for passport details, religion, family finances or anything private, and never try to trick them.
+- Never assume technical details the student did not state (data sources, tools, methods, team size). Ask them to describe those instead.
+- Each question is one or two plain sentences.
+${
+  last
+    ? `- The student has now given ${answered} answers, so this interview is finished. Set done to true, leave question empty, give a one-sentence feedback on the last answer, and fill the report: scores for relevance, specificity, consistency and communication (each 0 to 100, calibrated and honest: an answer with no example or number scores under 50), strengths (2), improve (3 specific things), and prepare (2 things to prepare before a real interview).`
+    : `- The student has given ${answered} of ${maxAnswers} answers. Set done to false. Give feedback: one specific sentence on their last answer (leave it empty if there is no answer yet). Then ask the next question. Leave scores, strengths, improve and prepare empty.`
+}
+
+${HONESTY_RULE}
+${DATA_RULE}`;
+}
+
+export function interviewUser(profile: StudentProfile, program: Program, statement: string, transcript: { role: string; text: string }[]): string {
+  const talk = transcript.length ? transcript.map((t) => `${t.role === "student" ? "Student" : "Interviewer"}: ${t.text}`).join("\n") : "(the interview has not started)";
+  return `${formatProfile(profile)}
+
+Program: ${program.program} at ${program.university} (${program.country}).
+
+<application_statement>
+${statement || "(the student has not written a statement yet)"}
+</application_statement>
+
+<transcript>
+${talk}
+</transcript>
+
+Respond now.`;
+}
+
+export const submitInterviewTurnTool: ToolDef = {
+  name: "submit_interview_turn",
+  description: "Submit feedback on the last answer and the next question, or the final report.",
+  parameters: {
+    type: "object",
+    properties: {
+      feedback: { type: "string" },
+      question: { type: "string" },
+      done: { type: "boolean" },
+      scores: {
+        type: "object",
+        properties: { relevance: { type: "number" }, specificity: { type: "number" }, consistency: { type: "number" }, communication: { type: "number" } },
+      },
+      strengths: { type: "array", items: { type: "string" } },
+      improve: { type: "array", items: { type: "string" } },
+      prepare: { type: "array", items: { type: "string" } },
+    },
+    required: ["feedback", "question", "done", "strengths", "improve", "prepare"],
+  },
+};
+
+// ---------- Natural-language what-if ----------
+
+export function parseChangeSystem(language: string): string {
+  return `You turn a student's what-if sentence into changes to their profile fields. The sentence may be in any language (it may be in ${language}). Press submit_changes.
+- Include only fields the sentence clearly changes. Never change anything it does not mention.
+- For MONEY fields (budgetUsd, budgetMinUsd, scholarshipMinUsd, scholarshipMaxUsd, loanAmountUsd) do NOT calculate anything. Fill "money" with exactly what the student said: currency (INR or USD), amount as a plain number in whole units (1 lakh = 100000, 1 crore = 10000000, 50k = 50000), and direction: "increase" or "decrease" when they say it goes up or down by an amount, or "set" when they give the new figure itself. The app does the conversion and the sum. Leave "value" empty for money fields.
+- For every other field, give the new value in "value". If the sentence is relative for a non-money field, work it out from the current profile.
+- The field must be one of: ${PROFILE_FIELD_LIST}.
+- Value formats: ${VALUE_FORMATS}
+- reason: one short sentence in ${language} saying what you understood.
+- summary: one short sentence in ${language} describing the whole change, or saying you found no clear change.
+${DATA_RULE}`;
+}
+
+export function parseChangeUser(profile: StudentProfile, text: string): string {
+  return `${formatProfile(profile)}
+
+<what_if_sentence>
+${text}
+</what_if_sentence>
+
+Respond now.`;
+}
+
+export const submitChangesTool: ToolDef = {
+  name: "submit_changes",
+  description: "Submit the profile changes the sentence describes.",
+  parameters: {
+    type: "object",
+    properties: {
+      summary: { type: "string" },
+      changes: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            field: { type: "string" },
+            value: { type: "string" },
+            money: {
+              type: "object",
+              properties: {
+                currency: { type: "string", enum: ["INR", "USD"] },
+                amount: { type: "number" },
+                direction: { type: "string", enum: ["set", "increase", "decrease"] },
+              },
+            },
+            reason: { type: "string" },
+          },
+          required: ["field", "reason"],
+        },
+      },
+    },
+    required: ["summary", "changes"],
+  },
+};
+
+// ---------- Weekly plan from the progress coach ----------
+
+export function weeklyPlanSystem(language: string): string {
+  return `You are a kind, direct study-abroad progress coach. You are given only numbers about how the student has been doing, never their words. Press submit_weekly_plan.
+- headline: one sentence on where they stand and what matters most this week, in ${language}.
+- days: a 5 to 7 day plan, each day one small task (15 to 30 minutes) chosen from what the numbers show: if they have been inactive, start gently; if an English plateau is flagged, focus a day on one skill drill; if tasks are overdue or a deadline is near, put those first; if requirements are missing, plan the first action; if a chosen draft exists and no interview has been done, plan a mock interview.
+- encouragement: one honest sentence, no flattery, in ${language}.
+- Write in ${language}${language === "English" ? "" : ", in its own native script, never in Roman letters"}. Keep tasks specific to this app: the English coach, the writing mode, the mock interview, the checklist on the plan page, the gap check on a program card.
+${DATA_RULE}`;
+}
+
+export const submitWeeklyPlanTool: ToolDef = {
+  name: "submit_weekly_plan",
+  description: "Submit the headline, the day-by-day plan and an encouraging line.",
+  parameters: {
+    type: "object",
+    properties: {
+      headline: { type: "string" },
+      days: { type: "array", items: { type: "object", properties: { day: { type: "string" }, task: { type: "string" } }, required: ["day", "task"] } },
+      encouragement: { type: "string" },
+    },
+    required: ["headline", "days", "encouragement"],
   },
 };

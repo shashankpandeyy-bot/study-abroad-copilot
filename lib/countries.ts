@@ -8,7 +8,8 @@ export type Destination = {
   hours: number; // typical flight time from India, for the arc
   line: string; // one honest sentence on cost
   currency: { code: string; symbol: string; perInr: number };
-  theme: { main: string; ink: string; tint: string };
+  theme: { main: string; ink: string; tint: string }; // the page colours: bright on black
+  art: { main: string; ink: string; tint: string }; // the city picture colours (a light tile)
   arcY: number; // where the arc lands in the 320x120 map strip
   vibe: string; // a few words on what the place is known for
   typicalUsd: [number, number]; // rough yearly total (tuition plus living) for a master's degree. Illustration only: checked against general knowledge in October 2026, not live data.
@@ -23,7 +24,8 @@ export const DESTINATIONS: Destination[] = [
     code: "DE", name: "Germany", city: "Munich", airport: "MUC", gate: "12", hours: 8.5,
     line: "Most public universities charge no tuition. You still need living costs.",
     currency: { code: "EUR", symbol: "€", perInr: 0.0108 },
-    theme: { main: "#7a5c00", ink: "#3a2b00", tint: "#fff3c4" }, arcY: 40,
+    theme: { main: "#f2c230", ink: "#fff1c2", tint: "#2b2410" },
+    art: { main: "#7a5c00", ink: "#3a2b00", tint: "#fff3c4" }, arcY: 40,
   
     vibe: "Engineering heartland, low fees", typicalUsd: [11000, 17000], intakes: "Oct and Apr",
   },
@@ -31,7 +33,8 @@ export const DESTINATIONS: Destination[] = [
     code: "CA", name: "Canada", city: "Toronto", airport: "YYZ", gate: "07", hours: 14,
     line: "Fees are moderate. Thesis programmes often come with funding.",
     currency: { code: "CAD", symbol: "C$", perInr: 0.0165 },
-    theme: { main: "#c8102e", ink: "#5a0614", tint: "#fde8eb" }, arcY: 22,
+    theme: { main: "#ff5c70", ink: "#ffe3e7", tint: "#2d1519" },
+    art: { main: "#c8102e", ink: "#5a0614", tint: "#fde8eb" }, arcY: 22,
   
     vibe: "Welcoming, with post-study work routes", typicalUsd: [26000, 44000], intakes: "Sep, Jan and May",
   },
@@ -39,7 +42,8 @@ export const DESTINATIONS: Destination[] = [
     code: "US", name: "USA", city: "Boston", airport: "BOS", gate: "21", hours: 16,
     line: "Highest sticker prices. Assistantships and scholarships change the real cost.",
     currency: { code: "USD", symbol: "$", perInr: 0.0119 },
-    theme: { main: "#1d3f8f", ink: "#0f214d", tint: "#e6ecfa" }, arcY: 14,
+    theme: { main: "#6aa6ff", ink: "#e1eeff", tint: "#14213a" },
+    art: { main: "#1d3f8f", ink: "#0f214d", tint: "#e6ecfa" }, arcY: 14,
   
     vibe: "Research powerhouse, many funded seats", typicalUsd: [35000, 65000], intakes: "Aug and Jan",
   },
@@ -47,7 +51,8 @@ export const DESTINATIONS: Destination[] = [
     code: "GB", name: "United Kingdom", city: "London", airport: "LHR", gate: "04", hours: 9,
     line: "One-year master's degrees save time, but fees are paid up front.",
     currency: { code: "GBP", symbol: "£", perInr: 0.009 },
-    theme: { main: "#5b2a86", ink: "#2e1445", tint: "#f0e8f8" }, arcY: 36,
+    theme: { main: "#b995ff", ink: "#efe6ff", tint: "#231a38" },
+    art: { main: "#5b2a86", ink: "#2e1445", tint: "#f0e8f8" }, arcY: 36,
   
     vibe: "One-year degrees and global names", typicalUsd: [34000, 56000], intakes: "Sep and Jan",
   },
@@ -55,7 +60,8 @@ export const DESTINATIONS: Destination[] = [
     code: "AU", name: "Australia", city: "Melbourne", airport: "MEL", gate: "16", hours: 12,
     line: "Fees and living costs are both high. Work rights help with part of it.",
     currency: { code: "AUD", symbol: "A$", perInr: 0.0183 },
-    theme: { main: "#0f6e6e", ink: "#06393a", tint: "#def3f2" }, arcY: 100,
+    theme: { main: "#3ed6cb", ink: "#d9fbf8", tint: "#12302e" },
+    art: { main: "#0f6e6e", ink: "#06393a", tint: "#def3f2" }, arcY: 100,
   
     vibe: "Sun, campus life and work rights", typicalUsd: [38000, 52000], intakes: "Feb and Jul",
   },
@@ -63,7 +69,8 @@ export const DESTINATIONS: Destination[] = [
     code: "IE", name: "Ireland", city: "Dublin", airport: "DUB", gate: "09", hours: 10,
     line: "Mid-range fees, a strong tech sector, and one-year master's degrees.",
     currency: { code: "EUR", symbol: "€", perInr: 0.0108 },
-    theme: { main: "#13763a", ink: "#08331a", tint: "#e0f3e7" }, arcY: 34,
+    theme: { main: "#4cd27d", ink: "#dcfbe6", tint: "#132b1c" },
+    art: { main: "#13763a", ink: "#08331a", tint: "#e0f3e7" }, arcY: 34,
   
     vibe: "Europe tech hub, English-speaking", typicalUsd: [29000, 44000], intakes: "Sep",
   },
@@ -71,7 +78,8 @@ export const DESTINATIONS: Destination[] = [
     code: "NL", name: "Netherlands", city: "Amsterdam", airport: "AMS", gate: "18", hours: 9,
     line: "English-taught programmes are common. Rent in big cities is steep.",
     currency: { code: "EUR", symbol: "€", perInr: 0.0108 },
-    theme: { main: "#b34f00", ink: "#4a2100", tint: "#fdeedd" }, arcY: 38,
+    theme: { main: "#ff9d4d", ink: "#ffe9d6", tint: "#302014" },
+    art: { main: "#b34f00", ink: "#4a2100", tint: "#fdeedd" }, arcY: 38,
   
     vibe: "Cycling, canals and English-taught degrees", typicalUsd: [24000, 38000], intakes: "Sep and Feb",
   },
@@ -79,7 +87,8 @@ export const DESTINATIONS: Destination[] = [
     code: "SG", name: "Singapore", city: "Singapore", airport: "SIN", gate: "02", hours: 5.5,
     line: "Short flight, high-ranked universities, and a high cost of living.",
     currency: { code: "SGD", symbol: "S$", perInr: 0.0153 },
-    theme: { main: "#a4133c", ink: "#4a0a1c", tint: "#fbe6ec" }, arcY: 96,
+    theme: { main: "#ff6a93", ink: "#ffe1ea", tint: "#2e1520" },
+    art: { main: "#a4133c", ink: "#4a0a1c", tint: "#fbe6ec" }, arcY: 96,
   
     vibe: "Asia gateway, top-ranked and compact", typicalUsd: [33000, 52000], intakes: "Aug and Jan",
   },
@@ -98,4 +107,5 @@ export function themeFor(countries: string): Destination["theme"] | undefined {
   return list.length === 1 ? destinationFor(list[0])?.theme : undefined;
 }
 
-export const NEUTRAL_THEME = { main: "#2347e0", ink: "#0f1e5a", tint: "#e4e9fb" };
+export const NEUTRAL_THEME = { main: "#1ed760", ink: "#d6ffe6", tint: "#12301e" };
+export const NEUTRAL_ART = { main: "#2347e0", ink: "#0f1e5a", tint: "#e4e9fb" };

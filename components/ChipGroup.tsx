@@ -67,10 +67,10 @@ export default function ChipGroup({
               onClick={() => toggle(o)}
               className={`inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-[15px] transition ${
                 on
-                  ? "border-main bg-main text-white"
+                  ? "border-main bg-main font-semibold text-black"
                   : blocked
                     ? "cursor-not-allowed border-line bg-ink/5 text-tarmac"
-                    : "border-line bg-white text-ink hover:border-main"
+                    : "border-line bg-surface text-ink hover:border-main"
               }`}
             >
               {o}

@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Martian_Mono } from "next/font/google";
+import { Figtree, Martian_Mono } from "next/font/google";
 import ChatDock from "@/components/ChatDock";
 import CountryTheme from "@/components/CountryTheme";
 import AppShell from "@/components/AppShell";
 import { AppProvider } from "@/lib/state";
 import "./globals.css";
 
-const instrument = Instrument_Sans({
-  variable: "--font-instrument",
+const figtree = Figtree({
+  variable: "--font-app",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -26,12 +27,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#eef1f5",
+  themeColor: "#000000",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${instrument.variable} ${martian.variable} h-full`}>
+    <html lang="en" className={`${figtree.variable} ${martian.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         <AppProvider>
           <CountryTheme />

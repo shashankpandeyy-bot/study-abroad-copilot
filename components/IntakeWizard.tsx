@@ -54,7 +54,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 function ErrorText({ children }: { children: React.ReactNode }) {
   return (
-    <p role="alert" className="mt-1 text-xs font-medium text-red-700">
+    <p role="alert" className="mt-1 text-xs font-medium text-red-300">
       {children}
     </p>
   );
@@ -111,7 +111,7 @@ function Choice<T extends string>({
             className={`rounded-xl border p-3 text-left text-sm transition ${
               value === o.value
                 ? "border-jet bg-main-tint ring-2 ring-main/30"
-                : "border-line bg-white hover:border-ink/40"
+                : "border-line bg-surface hover:border-ink/40"
             }`}
           >
             <span className="block font-medium text-ink">{o.title}</span>
@@ -685,7 +685,7 @@ export default function IntakeWizard({
       )}
 
       {formError && (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <p role="alert" className="rounded-lg border border-red-400/40 bg-red-500/15 p-3 text-sm text-red-300">
           {formError}
         </p>
       )}

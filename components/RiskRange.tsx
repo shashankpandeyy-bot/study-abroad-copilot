@@ -89,7 +89,7 @@ export default function RiskRange({
               aria-pressed={on}
               onClick={() => emit(p.min, p.max)}
               className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-sm transition-colors ${
-                on ? "border-main bg-main text-white" : "border-line bg-surface text-ink hover:border-main"
+                on ? "border-main bg-main font-semibold text-black" : "border-line bg-surface text-ink hover:border-main"
               }`}
             >
               {p.label}
